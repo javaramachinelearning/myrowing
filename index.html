@@ -1,0 +1,583 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Concept2 Logbook 모바일 통합 분석 시스템</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <style>
+        :root {
+            --c2-green: #00FF66;
+            --c2-yellow: #CCFF00;
+        }
+        body {
+            -webkit-tap-highlight-color: transparent;
+            touch-action: manipulation;
+        }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen font-sans antialiased pb-12">
+
+    <header class="sticky top-0 z-40 border-b border-slate-800 bg-slate-900/80 backdrop-blur px-4 py-3 flex items-center justify-between">
+        <div class="flex items-center gap-2">
+            <div id="statusDot" class="w-2.5 h-2.5 rounded-full bg-red-500 animate-pulse"></div>
+            <h1 class="text-base font-black tracking-wider uppercase text-slate-200">Concept2 Dashboard</h1>
+        </div>
+        <button onclick="toggleConfigModal(true)" type="button" class="bg-slate-800 text-slate-300 hover:text-[#00FF66] p-1.5 rounded-xl border border-slate-700 flex items-center justify-center cursor-pointer transition active:scale-95">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+            </svg>
+        </button>
+    </header>
+
+    <main class="p-4 space-y-5 max-w-md mx-auto">
+        
+        <div class="bg-slate-900 border border-slate-800 p-4 rounded-2xl space-y-3 shadow-xl">
+            <div class="flex justify-between items-center">
+                <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Concept2 Logbook API</span>
+                <span id="syncIndicator" class="text-[10px] text-red-400 font-bold">인증 정보 없음</span>
+            </div>
+            <button onclick="fetchConcept2Results()" class="w-full bg-[#00FF66] text-black font-black text-sm py-2.5 rounded-xl hover:bg-[#CCFF00] active:scale-[0.98] transition cursor-pointer">
+                실시간 로그북 동기화
+            </button>
+        </div>
+
+        <div id="statusMessage" class="hidden p-4 rounded-2xl text-xs font-semibold bg-slate-900 border border-slate-800 text-center"></div>
+
+        <div id="workoutSelectContainer" class="hidden bg-slate-900 border border-slate-800 p-4 rounded-2xl space-y-2 shadow-xl overflow-hidden">
+            <div class="flex justify-between items-center pb-1">
+                <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">동기화 완료 세션</span>
+                <span class="text-[9px] text-slate-500 font-mono">세션 클릭 시 고유 ID 매핑 Split 데이터 출력</span>
+            </div>
+            
+            <div class="w-full border border-slate-800 rounded-xl bg-slate-950 overflow-hidden text-[11px] font-mono">
+                <div class="w-full bg-slate-900 px-3 py-2 border-b border-slate-800 flex flex-row items-center justify-between text-slate-400 font-bold tracking-tight text-center">
+                    <div class="flex items-center gap-1.5 w-[30%] text-left">
+                        <button onclick="handleSort('date')" class="hover:text-[#00FF66] flex items-center gap-0.5 cursor-pointer">일자<span id="sort_date">▼</span></button>
+                        <button onclick="handleSort('distance')" class="hover:text-[#00FF66] flex items-center gap-0.5 cursor-pointer">거리<span id="sort_distance"></span></button>
+                    </div>
+                    <div class="w-[20%]">
+                        <button onclick="handleSort('time')" class="hover:text-[#00FF66] flex items-center gap-0.5 mx-auto cursor-pointer">⏱️시간<span id="sort_time"></span></button>
+                    </div>
+                    <div class="w-[20%] text-c2-green">
+                        <button onclick="handleSort('pace')" class="hover:text-[#00FF66] flex items-center gap-0.5 mx-auto cursor-pointer">⏱️페이스<span id="sort_pace"></span></button>
+                    </div>
+                    <div class="w-[16%]">
+                        <button onclick="handleSort('stroke_count')" class="hover:text-[#00FF66] flex items-center gap-0.5 mx-auto cursor-pointer">🚣회수<span id="sort_stroke_count"></span></button>
+                    </div>
+                    <div class="w-[14%] text-right">
+                        <button onclick="handleSort('stroke_rate')" class="hover:text-[#00FF66] flex items-center gap-0.5 ml-auto cursor-pointer">⚡SPM<span id="sort_stroke_rate"></span></button>
+                    </div>
+                </div>
+                <div id="workoutListGroup" class="w-full h-[220px] overflow-y-auto divide-y divide-slate-900/60 no-scrollbar"></div>
+            </div>
+        </div>
+
+        <div id="dashboardContainer" class="hidden space-y-5">
+            <div class="bg-slate-900 border border-slate-800 p-4 rounded-2xl shadow-xl space-y-2">
+                <div class="flex justify-between items-center mb-1 border-b border-slate-800 pb-2">
+                    <span class="text-xs font-bold text-slate-400 uppercase tracking-wider block">Detailed Split 데이터</span>
+                    <span id="activeDateLabel" class="text-xs text-[#00FF66] font-mono font-bold"></span>
+                </div>
+                
+                <div class="w-full overflow-x-auto border border-slate-800 rounded-xl bg-slate-950 no-scrollbar">
+                    <table class="w-full text-left border-collapse text-[10px] font-mono whitespace-nowrap min-w-[340px]">
+                        <thead>
+                            <tr class="bg-slate-900 text-slate-400 font-bold border-b border-slate-800">
+                                <th class="py-1.5 px-2 text-center w-8">구간</th>
+                                <th class="py-1.5 px-2 text-right">시간</th>
+                                <th class="py-1.5 px-2 text-right">거리</th>
+                                <th class="py-1.5 px-2 text-right">페이스</th>
+                                <th class="py-1.5 px-2 text-right">와트</th>
+                                <th class="py-1.5 px-2 text-right">칼로리</th>
+                                <th class="py-1.5 px-2 text-right text-orange-400">1회당 길이</th>
+                                <th class="py-1.5 px-2 text-right text-sky-400 pr-3">s/m</th>
+                            </tr>
+                        </thead>
+                        <tbody id="splitTableBody" class="divide-y divide-slate-900 text-slate-200">
+                            </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="bg-slate-900 border border-slate-800 p-4 rounded-2xl shadow-xl space-y-2">
+                <div class="flex justify-between items-center mb-1 border-b border-slate-800 pb-2">
+                    <span class="text-xs font-bold text-[#CCFF00] uppercase tracking-wider block">Raw Stroke 상세 분석</span>
+                </div>
+                <div class="w-full overflow-x-auto border border-slate-800 rounded-xl bg-slate-950 no-scrollbar">
+                    <table class="w-full text-left border-collapse text-[10px] font-mono whitespace-nowrap min-w-[340px]">
+                        <thead>
+                            <tr class="bg-slate-900 text-slate-400 font-bold border-b border-slate-800">
+                                <th class="py-1.5 px-2 text-center">No.</th>
+                                <th class="py-1.5 px-2 text-right text-orange-400">페이스</th>
+                                <th class="py-1.5 px-2 text-right text-orange-400">SPM</th>
+                                <th class="py-1.5 px-2 text-right">누적거리</th>
+                                <th class="py-1.5 px-2 text-right">누적시간</th>
+                            </tr>
+                        </thead>
+                        <tbody id="strokeTableBody" class="divide-y divide-slate-900 text-slate-200"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <div id="configModal" class="hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="bg-slate-900 border border-slate-800 w-full max-w-sm rounded-2xl shadow-2xl overflow-hidden">
+            <div class="px-4 py-3 bg-slate-950 border-b border-slate-800 flex justify-between items-center">
+                <span class="text-xs font-black tracking-wider uppercase text-slate-300">⚙️ API 연동 수동 설정</span>
+                <button onclick="toggleConfigModal(false)" type="button" class="text-slate-500 hover:text-slate-200 text-lg font-bold p-1 cursor-pointer">&times;</button>
+            </div>
+            <div class="p-4 space-y-4">
+                <div class="space-y-1">
+                    <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wide">Concept2 Access Token</label>
+                    <input type="password" id="cfgToken" placeholder="Bearer 토큰 입력" class="w-full bg-slate-950 border border-slate-700 text-xs px-3 py-2 rounded-xl text-slate-200 focus:outline-none focus:border-[#00FF66]">
+                </div>
+                <div class="space-y-1">
+                    <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wide">User ID (고유 고객 번호)</label>
+                    <input type="text" id="cfgUser" placeholder="예: 2708646" class="w-full bg-slate-950 border border-slate-700 text-xs px-3 py-2 rounded-xl text-slate-200 focus:outline-none focus:border-[#00FF66]">
+                </div>
+                <div class="space-y-1">
+                    <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wide">통신 모드 (CORS 우회)</label>
+                    <select id="cfgProxyMode" class="w-full bg-slate-950 border border-slate-700 text-xs px-3 py-2 rounded-xl text-slate-200 focus:outline-none focus:border-[#00FF66]">
+                        <option value="direct">직접 통신 (Apps Script 브릿지 전용)</option>
+                        <option value="allorigins">오픈 프록시 (AllOrigins 경유)</option>
+                    </select>
+                </div>
+                <div class="pt-2 flex gap-2">
+                    <button onclick="toggleConfigModal(false)" type="button" class="flex-1 bg-slate-800 text-slate-400 font-bold text-xs py-2.5 rounded-xl cursor-pointer hover:bg-slate-700">취소</button>
+                    <button onclick="saveConfiguration()" type="button" class="flex-1 bg-[#00FF66] text-black font-black text-xs py-2.5 rounded-xl cursor-pointer hover:bg-[#CCFF00]">정보 세이브</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let localCacheData = [];
+        let currentSortKey = 'date';
+        let isAscending = false;
+
+        window.addEventListener('DOMContentLoaded', () => {
+            initApp();
+        });
+
+        function formatPm5Time(rawDeciseconds) {
+            if (rawDeciseconds === undefined || rawDeciseconds === null || isNaN(rawDeciseconds)) return "--:--";
+            
+            const totalSeconds = Number(rawDeciseconds) / 10;
+            const mins = Math.floor(totalSeconds / 60);
+            const secs = Math.floor(totalSeconds % 60);
+            const tenths = Math.round((totalSeconds % 1) * 10) % 10;
+            
+            if (mins > 0) {
+                return `${mins}:${secs.toString().padStart(2, '0')}.${tenths}`;
+            } else {
+                return `:${secs.toString().padStart(2, '0')}.${tenths}`;
+            }
+        }
+
+        // 1회 스트로크당 물리적 이동 거리 계산 함수
+        function calculateStrokeDriveLength(distanceMeters, rawDeciseconds, spm) {
+            if (!distanceMeters || !rawDeciseconds || !spm || isNaN(distanceMeters) || isNaN(rawDeciseconds) || isNaN(spm) || rawDeciseconds <= 0 || spm <= 0) return "--";
+            try {
+                const durationSeconds = Number(rawDeciseconds) / 10;
+                const strokeDriveLen = (distanceMeters * 60) / (durationSeconds * spm);
+                
+                return (isNaN(strokeDriveLen) || !isFinite(strokeDriveLen)) ? "--" : `${strokeDriveLen.toFixed(2)}m`;
+            } catch(e) {
+                return "--";
+            }
+        }
+
+        function formatPm5Pace(paceInDeciseconds) {
+            if (!paceInDeciseconds || isNaN(paceInDeciseconds) || paceInDeciseconds <= 0) return "--:--";
+            
+            const totalSeconds = Number(paceInDeciseconds) / 10;
+            const mins = Math.floor(totalSeconds / 60);
+            const secs = Math.floor(totalSeconds % 60);
+            const tenths = Math.round((totalSeconds % 1) * 10) % 10;
+            
+            return `${mins}:${secs.toString().padStart(2, '0')}.${tenths}`;
+        }
+
+        function showStatus(text, isError = false) {
+            const msgBox = document.getElementById('statusMessage');
+            msgBox.className = `p-4 rounded-2xl text-xs font-semibold border text-center ${isError ? 'bg-red-950/60 border-red-900 text-red-300' : 'bg-slate-900 border-slate-800 text-c2-green'}`;
+            msgBox.innerText = text;
+            msgBox.classList.remove('hidden');
+        }
+
+        function toggleConfigModal(isOpen) {
+            const modal = document.getElementById('configModal');
+            if (isOpen) {
+                document.getElementById('cfgToken').value = localStorage.getItem('c2_access_token') || "";
+                document.getElementById('cfgUser').value = localStorage.getItem('c2_user_id') || "";
+                document.getElementById('cfgProxyMode').value = localStorage.getItem('c2_proxy_mode') || "direct";
+                modal.classList.remove('hidden');
+            } else {
+                modal.classList.add('hidden');
+            }
+        }
+
+        function saveConfiguration() {
+            const tok = document.getElementById('cfgToken').value.trim();
+            const usr = document.getElementById('cfgUser').value.trim();
+            const mode = document.getElementById('cfgProxyMode').value;
+
+            if(!tok || !usr) {
+                alert("모든 필수 연동 규격을 입력해야 합니다.");
+                return;
+            }
+
+            localStorage.setItem('c2_access_token', tok);
+            localStorage.setItem('c2_user_id', usr);
+            localStorage.setItem('c2_proxy_mode', mode);
+
+            initApp();
+            toggleConfigModal(false);
+            showStatus("✅ 로컬 연동 정보 인덱싱 및 암호화 매핑 완료.");
+        }
+
+        function initApp() {
+            const tok = localStorage.getItem('c2_access_token');
+            const usr = localStorage.getItem('c2_user_id');
+            const ind = document.getElementById('syncIndicator');
+            const dot = document.getElementById('statusDot');
+
+            if(tok && usr) {
+                ind.innerText = `ID: ${usr} 연동 대기`;
+                ind.className = "text-[10px] text-[#00FF66] font-bold";
+                dot.className = "w-2.5 h-2.5 rounded-full bg-[#00FF66]";
+            } else {
+                ind.innerText = "인증 정보 없음";
+                ind.className = "text-[10px] text-red-400 font-bold";
+                dot.className = "w-2.5 h-2.5 rounded-full bg-red-500 animate-pulse";
+            }
+        }
+
+        async function fetchConcept2Results() {
+            const token = localStorage.getItem('c2_access_token');
+            const userId = localStorage.getItem('c2_user_id');
+            const mode = localStorage.getItem('c2_proxy_mode') || "direct";
+
+            if(!token || !userId) {
+                showStatus("⚠️ Access Token과 User ID를 먼저 설정해주세요.", true);
+                toggleConfigModal(true);
+                return;
+            }
+
+            showStatus("⏳ Concept2 원격 서버에서 실시간 패킷 전송 및 파싱 중...");
+            const targetUrl = `https://log.concept2.com/api/users/${userId}/results`;
+            let finalFetchUrl = targetUrl;
+
+            if(mode === "allorigins") {
+                finalFetchUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(targetUrl)}`;
+            }
+
+            try {
+                const headers = {
+                    "Authorization": `Bearer ${token}`,
+                    "Accept": "application/vnd.c2logbook.v1+json"
+                };
+
+                const response = await fetch(finalFetchUrl, mode === "direct" ? { method: 'GET', headers: headers } : { method: 'GET' });
+                if(!response.ok) throw new Error(`HTTP Status ${response.status}`);
+
+                let resJsonData;
+                if(mode === "allorigins") {
+                    const rawProxy = await response.json();
+                    resJsonData = JSON.parse(rawProxy.contents);
+                } else {
+                    resJsonData = await response.json();
+                }
+
+                localCacheData = resJsonData.data || [];
+                if(localCacheData.length === 0) {
+                    showStatus("정상 수신되었으나 운동 데이터가 존재하지 않습니다.", true);
+                    return;
+                }
+
+                currentSortKey = 'date';
+                isAscending = false;
+                
+
+                renderWorkoutList(localCacheData);
+
+                showStatus(`✅ 성공적으로 전체 ${localCacheData.length}개의 세션을 동기화했습니다.`);
+            } catch (err) {
+                showStatus(`❌ 동기화 실패: ${err.message}`, true);
+            }
+        }
+
+        function handleSort(key) {
+            if(localCacheData.length === 0) return;
+            
+            if (currentSortKey === key) {
+                isAscending = !isAscending;
+            } else {
+                currentSortKey = key;
+                isAscending = true;
+            }
+
+            const keys = ['date', 'distance', 'time', 'pace', 'stroke_count', 'stroke_rate'];
+            keys.forEach(k => {
+                const el = document.getElementById(`sort_${k}`);
+                if(el) el.innerText = "";
+            });
+            document.getElementById(`sort_${key}`).innerText = isAscending ? "▲" : "▼";
+
+            localCacheData.sort((a, b) => {
+                let valA = a[key];
+                let valB = b[key];
+
+                if (key === 'pace') {
+                    if (!valA && a.time && a.distance) valA = ((a.time / 10) / a.distance) * 500 * 10;
+                    if (!valB && b.time && b.distance) valB = ((b.time / 10) / b.distance) * 500 * 10;
+                }
+
+                if (key === 'stroke_count') {
+                    if (!valA && a.time && a.stroke_rate) valA = Math.round(((a.time / 10) / 60) * a.stroke_rate);
+                    if (!valB && b.time && b.distance) valB = Math.round(((b.time / 10) / b.distance) * b.stroke_rate);
+                }
+
+                valA = valA ? (isNaN(valA) ? valA : Number(valA)) : 0;
+                valB = valB ? (isNaN(valB) ? valB : Number(valB)) : 0;
+
+                if (valA < valB) return isAscending ? -1 : 1;
+                if (valA > valB) return isAscending ? 1 : -1;
+                return 0;
+            });
+
+            renderWorkoutList(localCacheData);
+
+        }
+
+        function renderWorkoutList(data) {
+            const group = document.getElementById('workoutListGroup');
+            group.innerHTML = "";
+
+            data.forEach((w) => {
+                const dateStr = String(w.date).substring(5, 10);
+                const distanceStr = `${Number(w.distance || 0).toLocaleString()}m`;
+                
+                const timeFormattedStr = w.time_formatted || formatPm5Time(w.time);
+                const spmStr = w.stroke_rate ? String(w.stroke_rate) : '--';
+                
+                let rowPaceRaw = Number(w.pace || 0);
+                if (rowPaceRaw <= 0 && w.distance > 0 && w.time > 0) {
+                    rowPaceRaw = (((w.time / 10) / w.distance) * 500) * 10;
+                }
+                const paceFormattedStr = formatPm5Pace(rowPaceRaw);
+                
+                let strokeCount = w.stroke_count;
+                if (!strokeCount && w.time && w.stroke_rate) {
+                    strokeCount = Math.round(((w.time / 10) / 60) * w.stroke_rate);
+                }
+                const strokeCountStr = strokeCount ? `${strokeCount}회` : '--회';
+                
+                const box = document.createElement('div');
+                box.className = "w-full px-3 py-2 flex flex-row items-center justify-between text-[11px] hover:bg-slate-900 cursor-pointer transition tracking-tight gap-1 text-center";
+                
+                box.onclick = () => loadSplitDataByWorkoutId(w.id);
+                
+                box.innerHTML = `
+                    <div class="flex items-center gap-1.5 w-[30%] text-left">
+                        <span class="text-[#00FF66] font-bold">${dateStr}</span>
+                        <span class="text-slate-300 font-semibold">${distanceStr}</span>
+                    </div>
+                    <div class="w-[20%] text-slate-200">${timeFormattedStr}</div>
+                    <div class="w-[20%] text-c2-green font-bold">${paceFormattedStr}</div>
+                    <div class="w-[16%] text-[#CCFF00]">${strokeCountStr}</div>
+                    <div class="w-[14%] text-right text-slate-400">${spmStr}</div>
+                `;
+                group.appendChild(box);
+            });
+
+            document.getElementById('workoutSelectContainer').classList.remove('hidden');
+        }
+
+        function loadSplitDataByWorkoutId(workoutId) {
+            const workout = localCacheData.find(item => item.id === workoutId);
+            if(!workout) return;
+
+            document.getElementById('dashboardContainer').classList.remove('hidden');
+            document.getElementById('activeDateLabel').innerText = String(workout.date).substring(0, 10);
+
+            const tbody = document.getElementById('splitTableBody');
+            tbody.innerHTML = "";
+
+            const workoutObj = workout.workout || {};
+	
+	    //renderStrokeData(workoutObj)
+
+            let detailList = [];
+
+            if (workoutObj.splits && Array.isArray(workoutObj.splits) && workoutObj.splits.length > 0) {
+                detailList = workoutObj.splits;
+            } else if (workoutObj.intervals && Array.isArray(workoutObj.intervals) && workoutObj.intervals.length > 0) {
+                detailList = workoutObj.intervals;
+            }
+
+            if (detailList && detailList.length > 0) {
+                detailList.forEach((split, index) => {
+                    const tr = document.createElement('tr');
+                    tr.className = "hover:bg-slate-900/60 transition";
+
+                    const sTimeRaw = Number(split.time || 0); 
+                    const sDistance = Number(split.distance || 0);
+                    const sTimeSeconds = sTimeRaw / 10;
+                    
+                    const sPaceRaw = sDistance > 0 ? ((sTimeSeconds / sDistance) * 500) * 10 : 0;
+                    
+                    let sWatts = 0;
+                    const sPaceSeconds = sPaceRaw / 10;
+                    if (sPaceSeconds > 0) {
+                        sWatts = Math.round(2.80 / Math.pow(sPaceSeconds / 500, 3));
+                    }
+                    
+                    const sCaloriesTotal = split.calories_total || split.calories || '--';
+                    const sStrokeRate = split.stroke_rate || 0;
+
+                    const sDriveLength = calculateStrokeDriveLength(sDistance, sTimeRaw, sStrokeRate);
+
+                    tr.innerHTML = `
+                        <td class="py-2 px-2 text-center text-slate-400 font-semibold">${index + 1}</td>
+                        <td class="py-2 px-2 text-right text-slate-100 font-bold">${formatPm5Time(sTimeRaw)}</td>
+                        <td class="py-2 px-2 text-right text-slate-300">${sDistance.toLocaleString()}m</td>
+                        <td class="py-2 px-2 text-right text-c2-green font-bold">${formatPm5Pace(sPaceRaw)}</td>
+                        <td class="py-2 px-2 text-right text-slate-300">${sWatts || '--'}</td>
+                        <td class="py-2 px-2 text-right text-slate-400">${sCaloriesTotal}</td>
+                        <td class="py-2 px-2 text-right text-orange-400 font-bold">${sDriveLength}</td>
+                        <td class="py-2 px-2 text-right text-[#CCFF00] font-bold pr-3">${sStrokeRate || '--'}</td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            } else {
+                const tr = document.createElement('tr');
+                tr.className = "text-center text-slate-500 text-[11px]";
+                tr.innerHTML = `<td colspan="8" class="py-4">해당 세션에 연동된 실제 상세 Split 기록이 없습니다.</td>`;
+                tbody.appendChild(tr);
+                return;
+            }
+
+            const totalTr = document.createElement('tr');
+            totalTr.className = "bg-slate-900 font-bold border-t border-slate-700 text-[#00FF66]";
+            
+            const totalTimeRaw = Number(workout.time || 0);
+            const totalDistance = Number(workout.distance || 0);
+            
+            let totalPaceRaw = Number(workout.pace || 0);
+            if (totalPaceRaw <= 0 && totalDistance > 0 && totalTimeRaw > 0) {
+                const totalTimeSeconds = totalTimeRaw / 10;
+                totalPaceRaw = ((totalTimeSeconds / totalDistance) * 500) * 10;
+            }
+            
+            const totalPaceSeconds = totalPaceRaw / 10;
+            const totalWatts = workout.watts || (totalPaceSeconds > 0 ? Math.round(2.80 / Math.pow(totalPaceSeconds / 500, 3)) : 0);
+            const totalStrokeRate = workout.stroke_rate || 0;
+
+            const totalDriveLength = calculateStrokeDriveLength(totalDistance, totalTimeRaw, totalStrokeRate);
+
+            totalTr.innerHTML = `
+                <td class="py-2 px-2 text-center text-slate-400 font-bold">요약</td>
+                <td class="py-2 px-2 text-right text-slate-100 font-black">${formatPm5Time(totalTimeRaw)}</td>
+                <td class="py-2 px-2 text-right text-slate-200">${totalDistance.toLocaleString()}m</td>
+                <td class="py-2 px-2 text-right text-c2-green font-black">${formatPm5Pace(totalPaceRaw)}</td>
+                <td class="py-2 px-2 text-right text-slate-200">${totalWatts || '--'}</td>
+                <td class="py-2 px-2 text-right text-slate-400">${workout.calories || workout.calories_total || '--'}</td>
+                <td class="py-2 px-2 text-right text-orange-400 font-black">${totalDriveLength}</td>
+                <td class="py-2 px-2 text-right text-[#CCFF00] font-black pr-3">${totalStrokeRate || '--'}</td>
+            `;
+            tbody.appendChild(totalTr);
+
+            callStrokeData (workoutId) // STROKE 데이터 API 호출 
+
+            document.getElementById('dashboardContainer').scrollIntoView({ behavior: 'smooth' });
+
+        }
+
+    // Stroke 데이터 API 호출 함수
+
+async function callStrokeData(workoutId) {
+    const token = localStorage.getItem('c2_access_token');
+    const userId = localStorage.getItem('c2_user_id');
+    const mode = localStorage.getItem('c2_proxy_mode') || "direct";
+
+    // 1. UI 초기화 및 상태 표시
+    document.getElementById('dashboardContainer').classList.remove('hidden');
+    const workout = localCacheData.find(item => item.id === workoutId);
+    if (!workout) return;
+    document.getElementById('activeDateLabel').innerText = String(workout.date).substring(0, 10);
+
+    // 2. 실시간 스트로크 데이터 API 호출 추가
+    showStatus("⏳ 상세 스트로크 데이터를 서버에서 가져오는 중...");
+    const strokeUrl = `https://log.concept2.com/api/users/${userId}/results/${workoutId}/strokes`;
+    let finalFetchUrl = strokeUrl;
+
+    if(mode === "allorigins") {
+        finalFetchUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(strokeUrl)}`;
+    }
+        try {
+          const headers = {
+            "Authorization": `Bearer ${token}`,
+            "Accept": "application/vnd.c2logbook.v1+json"
+        };
+
+        const response = await fetch(finalFetchUrl, mode === "direct" ? { method: 'GET', headers: headers } : { method: 'GET' });
+        if(!response.ok) throw new Error(`HTTP Status ${response.status}`);
+
+        // 작성하신 로직 그대로 적용
+        let resJsonData;
+        if(mode === "allorigins") {
+            const rawProxy = await response.json();
+            resJsonData = JSON.parse(rawProxy.contents);
+        } else {
+            resJsonData = await response.json();
+        }
+
+        // 데이터 렌더링 (구조에 따라 resJsonData.data 혹은 resJsonData 사용)
+        const strokes = resJsonData.data || []; 
+        renderStrokeData(strokes); // 위에서 수정한 렌더링 함수 호출
+
+       showStatus("✅ 스트로크 데이터 동기화 완료."); 
+    } catch (err) {
+        showStatus(`❌ 상세 데이터 로드 실패: ${err.message}`, true);
+    }}
+
+
+
+    // Stroke 데이터 렌더링 함수 추가
+    function renderStrokeData(strokes) {
+    const tbody = document.getElementById('strokeTableBody');
+    tbody.innerHTML = "";
+
+    // API 응답 데이터가 배열인지 확인
+    if (!Array.isArray(strokes) || strokes.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="5" class="py-4 text-center text-slate-600">상세 스트로크 데이터가 존재하지 않습니다.</td></tr>`;
+        return;
+    }
+
+
+    	strokes.forEach((stroke, i) => {
+
+        const tr = document.createElement('tr');
+        tr.className = "hover:bg-slate-900/60 border-b border-slate-900";
+        tr.innerHTML = `
+            <td class="py-2 px-2 text-center text-slate-500 font-mono">${ i + 1}</td>
+            <td class="py-2 px-2 text-right text-orange-400 font-black">${formatPm5Pace(stroke.p)}</td>
+            <td class="py-2 px-2 text-right text-orange-400 font-black">${stroke.spm}</td>
+            <td class="py-2 px-2 text-right text-slate-300 font-mono">${stroke.t/10}s</td>
+            <td class="py-2 px-2 text-right text-slate-300 font-mono">${stroke.d/10}m</td>
+        `;
+        tbody.appendChild(tr);
+    });
+    }
+
+    //loadSplitDataByWorkoutId 함수 내부 마지막에 호출 추가:
+    //renderStrokeData(workout);
+</script>
+</body>
+</html>
