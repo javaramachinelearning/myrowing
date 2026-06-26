@@ -1,0 +1,10 @@
+:root {
+    --c2-green: #00FF66;
+    --c2-yellow: #CCFF00;
+}
+body {
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+}
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
