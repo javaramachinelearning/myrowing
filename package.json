@@ -1,0 +1,13 @@
+{
+  "name": "concept2-rowing-electron",
+  "version": "1.0.0",
+  "description": "Concept2 Rowing Analytics App",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron ."
+  },
+  "devDependencies": {
+    "electron": "^29.1.0"
+  },
+  "dependencies": {}
+}
