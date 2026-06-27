@@ -409,13 +409,15 @@ function renderStrokeData(strokes) {
     strokes.forEach((stroke, i) => {
         const paceSec = stroke.p / 10;
         const distM = stroke.d / 10;
-        scatterData.push({ x: distM, y: paceSec });
+	const watts = calculateWatts(stroke.p)
+        scatterData.push({ x: distM, y: watts });
 
         const tr = document.createElement('tr');
         tr.className = "hover:bg-slate-900/60 border-b border-slate-900";
         tr.innerHTML = `
             <td class="py-2 px-2 text-right text-orange-400 font-black">${formatPm5Pace(stroke.p)}</td>
             <td class="py-2 px-2 text-right text-orange-400 font-black">${stroke.spm}</td>
+            <td class="py-2 px-2 text-right text-orange-400 font-black">${watts}W</td>
             <td class="py-2 px-2 text-right text-slate-300 font-mono">${distM}m</td>
             <td class="py-2 px-2 text-right text-slate-300 font-mono">${stroke.t/10}s</td>
         `;
@@ -423,6 +425,21 @@ function renderStrokeData(strokes) {
     });
 
     renderScatterChart(scatterData);
+}
+
+// 실제 출력 값에 맞춘 보정 공식
+function calculateWatts(paceDeciseconds) {
+    if (!paceDeciseconds || paceDeciseconds <= 0) return 0;
+    
+    // 1. 표준 페이스(초) 계산
+    const paceSeconds = Number(paceDeciseconds) / 10;
+    
+    // 2. 이론적 파워 계산 (표준 공식)
+    const theoreticalWatts = 2.8 / Math.pow(paceSeconds / 500, 3);
+    
+    const calibratedWatts = theoreticalWatts * 1.002; 
+    
+    return Math.round(calibratedWatts);
 }
 
 function renderScatterChart(dataPoints) {
@@ -437,7 +454,7 @@ function renderScatterChart(dataPoints) {
         type: 'scatter',
         data: {
             datasets: [{
-                label: '거리별 페이스 (초/500m)',
+                label: '거리별 출력 (Watts)',
                 data: dataPoints,
                 backgroundColor: '#00FF66',
                 pointRadius: 3,
@@ -462,12 +479,11 @@ function renderScatterChart(dataPoints) {
                 y: {
                     title: {
                         display: true,
-                        text: '페이스 (초)',
+                        text: '출력 (Watts)',
                         color: '#94a3b8'
                     },
                     grid: { color: '#1e293b' },
-                    ticks: { color: '#94a3b8' },
-                    reverse: true // 페이스는 낮을수록 위로 가는 것이 좋음
+                    ticks: { color: '#94a3b8' }
                 }
             },
             plugins: {
@@ -525,7 +541,7 @@ ${top3.map(w => `일자: ${String(w.date).substring(0,10)}, 거리: ${w.distance
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-                contents: [{ parts: [{ text: "너는 전문 로잉 머신 코치야. 다음 데이터를 분석해서 마크다운 형식으로 피드백을 줘.\n" + promptContext }] }]
+                contents: [{ parts: [{ text: "너는 전문 로잉 머신 코치야. 다음 데이터를 분석해서 마크다운 형식으로 피드백을 줘. 단, 답변 길이는 핵심만 짧게 요약해줘. 그리고 2000m 이상 로잉은 모두 인터벌 훈련으로 간주하고 이에 맞춰서 답변을 작성해줘.\n" + promptContext }] }]
             })
         });
 
