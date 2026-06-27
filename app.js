@@ -541,7 +541,7 @@ ${top3.map(w => `일자: ${String(w.date).substring(0,10)}, 거리: ${w.distance
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-                contents: [{ parts: [{ text: "너는 전문 로잉 머신 코치야. 다음 데이터를 분석해서 마크다운 형식으로 피드백을 줘. 단, 답변 길이는 핵심만 짧게 요약해줘. 그리고 2000m 이상 로잉은 모두 인터벌 훈련으로 간주하고 이에 맞춰서 답변을 작성해줘.\n" + promptContext }] }]
+                contents: [{ parts: [{ text: "너는 전문 로잉 머신 코치야. 다음 데이터를 분석해서 마크다운 형식으로 피드백을 줘. 단, 답변 길이는 핵심만 짧게 요약해줘. 그리고 2000m 초과 로잉은 모두 인터벌 훈련으로 간주하고 이에 맞춰서 답변을 작성해줘.\n" + promptContext }] }]
             })
         });
 
