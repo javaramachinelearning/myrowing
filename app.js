@@ -2,6 +2,8 @@ let localCacheData = [];
 let strokeScatterChartObj = null;
 let currentSortKey = 'date';
 let isAscending = false;
+let currentFilter = 'all';
+let currentStrokesData = [];
 
 window.addEventListener('DOMContentLoaded', () => {
     initApp();
@@ -148,14 +150,18 @@ async function fetchConcept2Results() {
 
         currentSortKey = 'date';
         isAscending = false;
-        
-
-        renderWorkoutList(localCacheData);
+        currentFilter = 'all';
+        applyFilterAndSort();
 
         showStatus(`✅ 성공적으로 전체 ${localCacheData.length}개의 세션을 동기화했습니다.`);
     } catch (err) {
         showStatus(`❌ 동기화 실패: ${err.message}`, true);
     }
+}
+
+function filterWorkouts(type) {
+    currentFilter = type;
+    applyFilterAndSort();
 }
 
 function handleSort(key) {
@@ -175,16 +181,31 @@ function handleSort(key) {
     });
     document.getElementById(`sort_${key}`).innerText = isAscending ? "▲" : "▼";
 
-    localCacheData.sort((a, b) => {
-        let valA = a[key];
-        let valB = b[key];
+    applyFilterAndSort();
+}
 
-        if (key === 'pace') {
+function applyFilterAndSort() {
+    let dataToRender = [...localCacheData];
+    
+    if (currentFilter !== 'all') {
+        dataToRender = dataToRender.filter(w => {
+            const typeStr = String((w.workout && w.workout.type) || w.workout_type || w.type || "");
+            // 단일 로잉은 FixedDistanceSplits 외에도 FixedDistance, FixedTime 등일 수 있지만, 
+            // 프롬프트 명시조건인 FixedDistanceSplits 에 우선 매칭합니다.
+            return typeStr === currentFilter;
+        });
+    }
+
+    dataToRender.sort((a, b) => {
+        let valA = a[currentSortKey];
+        let valB = b[currentSortKey];
+
+        if (currentSortKey === 'pace') {
             if (!valA && a.time && a.distance) valA = ((a.time / 10) / a.distance) * 500 * 10;
             if (!valB && b.time && b.distance) valB = ((b.time / 10) / b.distance) * 500 * 10;
         }
 
-        if (key === 'stroke_count') {
+        if (currentSortKey === 'stroke_count') {
             if (!valA && a.time && a.stroke_rate) valA = Math.round(((a.time / 10) / 60) * a.stroke_rate);
             if (!valB && b.time && b.distance) valB = Math.round(((b.time / 10) / b.distance) * b.stroke_rate);
         }
@@ -197,8 +218,7 @@ function handleSort(key) {
         return 0;
     });
 
-    renderWorkoutList(localCacheData);
-
+    renderWorkoutList(dataToRender);
 }
 
 function renderWorkoutList(data) {
@@ -267,13 +287,20 @@ function loadSplitDataByWorkoutId(workoutId) {
         detailList = workoutObj.intervals;
     }
 
+    let cumulativeDist = 0;
+
     if (detailList && detailList.length > 0) {
         detailList.forEach((split, index) => {
+            const sDistance = Number(split.distance || 0);
+            const startDist = cumulativeDist;
+            cumulativeDist += sDistance;
+            const endDist = cumulativeDist;
+
             const tr = document.createElement('tr');
-            tr.className = "hover:bg-slate-900/60 transition";
+            tr.className = "hover:bg-slate-900/60 transition cursor-pointer";
+            tr.onclick = () => filterStrokesByDistance(startDist, endDist);
 
             const sTimeRaw = Number(split.time || 0); 
-            const sDistance = Number(split.distance || 0);
             const sTimeSeconds = sTimeRaw / 10;
             
             const sPaceRaw = sDistance > 0 ? ((sTimeSeconds / sDistance) * 500) * 10 : 0;
@@ -305,14 +332,15 @@ function loadSplitDataByWorkoutId(workoutId) {
         tr.className = "text-center text-slate-500 text-[11px]";
         tr.innerHTML = `<td colspan="8" class="py-4">해당 세션에 연동된 실제 상세 Split 기록이 없습니다.</td>`;
         tbody.appendChild(tr);
-        return;
     }
 
     const totalTr = document.createElement('tr');
-    totalTr.className = "bg-slate-900 font-bold border-t border-slate-700 text-[#00FF66]";
     
     const totalTimeRaw = Number(workout.time || 0);
     const totalDistance = Number(workout.distance || 0);
+    
+    totalTr.className = "bg-slate-900 font-bold border-t border-slate-700 text-[#00FF66] cursor-pointer";
+    totalTr.onclick = () => filterStrokesByDistance(0, totalDistance);
     
     let totalPaceRaw = Number(workout.pace || 0);
     if (totalPaceRaw <= 0 && totalDistance > 0 && totalTimeRaw > 0) {
@@ -384,7 +412,22 @@ if(mode === "allorigins") {
 
 // 데이터 렌더링 (구조에 따라 resJsonData.data 혹은 resJsonData 사용)
 const strokes = resJsonData.data || []; 
-renderStrokeData(strokes); // 위에서 수정한 렌더링 함수 호출
+strokes.forEach((stroke, i) => {
+    stroke.paceSec = stroke.p / 10;
+    stroke.distM = stroke.d / 10;
+    stroke.timeS = stroke.t / 10;
+    stroke.watts = calculateWatts(stroke.p);
+    
+    if (i > 0) {
+        stroke.strokeDist = stroke.distM - (strokes[i - 1].d / 10);
+        stroke.strokeTime = stroke.timeS - (strokes[i - 1].t / 10);
+    } else {
+        stroke.strokeDist = stroke.distM;
+        stroke.strokeTime = stroke.timeS;
+    }
+});
+currentStrokesData = strokes;
+renderStrokeData(currentStrokesData); // 위에서 수정한 렌더링 함수 호출
 
 showStatus("✅ 스트로크 데이터 동기화 완료."); 
 } catch (err) {
@@ -400,31 +443,40 @@ function renderStrokeData(strokes) {
 
     // API 응답 데이터가 배열인지 확인
     if (!Array.isArray(strokes) || strokes.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="5" class="py-4 text-center text-slate-600">상세 스트로크 데이터가 존재하지 않습니다.</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="7" class="py-4 text-center text-slate-600">상세 스트로크 데이터가 존재하지 않습니다.</td></tr>`;
         return;
     }
 
     const scatterData = [];
 
     strokes.forEach((stroke, i) => {
-        const paceSec = stroke.p / 10;
-        const distM = stroke.d / 10;
-	const watts = calculateWatts(stroke.p)
-        scatterData.push({ x: distM, y: watts });
+        scatterData.push({ x: stroke.distM, y: stroke.watts });
 
         const tr = document.createElement('tr');
         tr.className = "hover:bg-slate-900/60 border-b border-slate-900";
         tr.innerHTML = `
             <td class="py-2 px-2 text-right text-orange-400 font-black">${formatPm5Pace(stroke.p)}</td>
             <td class="py-2 px-2 text-right text-orange-400 font-black">${stroke.spm}</td>
-            <td class="py-2 px-2 text-right text-orange-400 font-black">${watts}W</td>
-            <td class="py-2 px-2 text-right text-slate-300 font-mono">${distM}m</td>
-            <td class="py-2 px-2 text-right text-slate-300 font-mono">${stroke.t/10}s</td>
+            <td class="py-2 px-2 text-right text-orange-400 font-black">${stroke.watts}W</td>
+            <td class="py-2 px-2 text-right text-slate-300 font-mono">${stroke.distM}m</td>
+            <td class="py-2 px-2 text-right text-slate-300 font-mono">${stroke.timeS.toFixed(1)}s</td>
+            <td class="py-2 px-2 text-right text-sky-400 font-mono">${stroke.strokeDist.toFixed(2)}m</td>
+            <td class="py-2 px-2 text-right text-sky-400 font-mono">${stroke.strokeTime.toFixed(2)}s</td>
         `;
         tbody.appendChild(tr);
     });
 
     renderScatterChart(scatterData);
+}
+
+function filterStrokesByDistance(startDist, endDist) {
+    if (!currentStrokesData || currentStrokesData.length === 0) return;
+    const filteredStrokes = currentStrokesData.filter(stroke => {
+        return stroke.distM > startDist && stroke.distM <= endDist;
+    });
+    renderStrokeData(filteredStrokes);
+    const container = document.getElementById('dashboardContainer');
+    if(container) container.scrollIntoView({ behavior: 'smooth' });
 }
 
 // 실제 출력 값에 맞춘 보정 공식
@@ -515,7 +567,11 @@ async function generateAiReport(type) {
             const todayWorkout = localCacheData.find(w => String(w.date).substring(0, 10) === activeDate);
             if(!todayWorkout) throw new Error("선택된 세션이 없습니다.");
             
+            const typeStr = String((todayWorkout.workout && todayWorkout.workout.type) || todayWorkout.workout_type || todayWorkout.type || "");
+            const workoutTypeName = typeStr === 'VariableInterval' ? "인터벌 훈련" : "단일 로잉 훈련";
+
             promptContext = `다음은 오늘(선택된 날짜)의 로잉 머신 데이터입니다. 
+훈련 유형(workout_type): ${workoutTypeName} (${typeStr}),
 거리: ${todayWorkout.distance}m, 
 시간(0.1초): ${todayWorkout.time}, 
 평균 SPM: ${todayWorkout.stroke_rate}. 
@@ -523,7 +579,11 @@ async function generateAiReport(type) {
         } else if (type === 'recent_10') {
             const recent10 = localCacheData.slice(0, 10);
             promptContext = `다음은 최근 10번의 로잉 세션 요약입니다. 
-${recent10.map(w => `일자: ${String(w.date).substring(0,10)}, 거리: ${w.distance}m, SPM: ${w.stroke_rate}`).join(' | ')}.
+${recent10.map(w => {
+    const tStr = String((w.workout && w.workout.type) || w.workout_type || w.type || "");
+    const wName = tStr === 'VariableInterval' ? "인터벌" : "단일";
+    return `일자: ${String(w.date).substring(0,10)}, 유형: ${wName}, 거리: ${w.distance}m, SPM: ${w.stroke_rate}`;
+}).join(' | ')}.
 최근 10건의 데이터를 바탕으로 운동 추이와 체력 변화, 그리고 향후 훈련 방향을 분석해주세요.`;
         } else if (type === 'top_3') {
             const top3 = [...localCacheData].sort((a,b) => {
@@ -532,7 +592,11 @@ ${recent10.map(w => `일자: ${String(w.date).substring(0,10)}, 거리: ${w.dist
                 return paceA - paceB;
             }).slice(0, 3);
             promptContext = `다음은 나의 기록 중 페이스가 가장 빨랐던 Top 3 세션입니다. 
-${top3.map(w => `일자: ${String(w.date).substring(0,10)}, 거리: ${w.distance}m, SPM: ${w.stroke_rate}`).join(' | ')}.
+${top3.map(w => {
+    const tStr = String((w.workout && w.workout.type) || w.workout_type || w.type || "");
+    const wName = tStr === 'VariableInterval' ? "인터벌" : "단일";
+    return `일자: ${String(w.date).substring(0,10)}, 유형: ${wName}, 거리: ${w.distance}m, SPM: ${w.stroke_rate}`;
+}).join(' | ')}.
 왜 이 3건이 기록이 좋았을지 SPM과 거리 측면에서 분석하고, 앞으로 이 기록을 갱신하기 위한 팁을 주세요.`;
         }
 
@@ -541,7 +605,7 @@ ${top3.map(w => `일자: ${String(w.date).substring(0,10)}, 거리: ${w.distance
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-                contents: [{ parts: [{ text: "너는 전문 로잉 머신 코치야. 다음 데이터를 분석해서 마크다운 형식으로 피드백을 줘. 단, 답변 길이는 핵심만 짧게 요약해줘. 그리고 2000m 초과 로잉은 모두 인터벌 훈련으로 간주하고 이에 맞춰서 답변을 작성해줘.\n" + promptContext }] }]
+                contents: [{ parts: [{ text: "너는 전문 로잉 머신 코치야. 다음 데이터를 분석해서 마크다운 형식으로 피드백을 줘. 단, 답변 길이는 핵심만 짧게 요약해줘. 인터벌과 단일은 workout_type 데이터에서 확인 가능하니 경우를 나눠서 설명해줘.\n" + promptContext }] }]
             })
         });
 
