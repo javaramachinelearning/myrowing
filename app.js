@@ -4,6 +4,7 @@ let currentSortKey = 'date';
 let isAscending = false;
 let currentFilter = 'all';
 let currentStrokesData = [];
+let currentSplitsData = [];
 
 window.addEventListener('DOMContentLoaded', () => {
     initApp();
@@ -286,6 +287,8 @@ function loadSplitDataByWorkoutId(workoutId) {
     } else if (workoutObj.intervals && Array.isArray(workoutObj.intervals) && workoutObj.intervals.length > 0) {
         detailList = workoutObj.intervals;
     }
+
+    currentSplitsData = detailList
 
     let cumulativeDist = 0;
 
@@ -600,12 +603,37 @@ ${top3.map(w => {
 왜 이 3건이 기록이 좋았을지 SPM과 거리 측면에서 분석하고, 앞으로 이 기록을 갱신하기 위한 팁을 주세요.`;
         }
 
+       if (currentSplitsData && currentSplitsData.length > 0) {
+             const splitSummary = currentSplitsData.map((s, idx) => {
+                const pace = ((s.time/10)/s.distance) * 500;
+                return `구간${idx+1}: ${s.distance}m, 페이스:${pace.toFixed(0)}s, SPM:${s.stroke_rate}`;
+             }).join(' | ');
+
+            promptContext += `\n[상세 구간(Split) 기록]\n${splitSummary}\n`;
+        }
+
+        // 2. currentStrokesData 요약 및 추가 (핵심 수정 부분)
+        if (currentStrokesData && currentStrokesData.length > 0) {
+            // 모든 스트로크를 다 넣으면 너무 길어지므로, 페이스/SPM/와트의 평균과 범위를 요약하여 추가
+            const totalStrokes = currentStrokesData.length;
+            const avgPace = currentStrokesData.reduce((acc, s) => acc + s.p, 0) / totalStrokes;
+            const avgWatts = currentStrokesData.reduce((acc, s) => acc + s.watts, 0) / totalStrokes;
+            
+            promptContext += `\n[상세 스트로크 통계 (${totalStrokes}회)]\n`;
+            promptContext += `- 평균 페이스(Deci): ${avgPace.toFixed(0)}\n`;
+            promptContext += `- 평균 출력: ${avgWatts.toFixed(0)}W\n`;
+            promptContext += `- 페이스 변화: 최고 ${Math.min(...currentStrokesData.map(s => s.p))} ~ 최저 ${Math.max(...currentStrokesData.map(s => s.p))}\n`;
+            
+            // 필요하다면 최근 5개 스트로크의 상세 이력만 일부 추가
+            promptContext += `- 최근 5회 상세 (페이스/SPM/Watts): ${currentStrokesData.slice(-5).map(s => `${s.p}/${s.spm}/${s.watts}`).join(' | ')}`;
+        }
+
         const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${geminiKey}`;
         const response = await fetch(url, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-                contents: [{ parts: [{ text: "너는 전문 로잉 머신 코치야. 다음 데이터를 분석해서 마크다운 형식으로 피드백을 줘. 단, 답변 길이는 핵심만 짧게 요약해줘. 인터벌과 단일은 workout_type 데이터에서 확인 가능하니 경우를 나눠서 설명해줘.\n" + promptContext }] }]
+                contents: [{ parts: [{ text: "너는 전문 로잉 머신 코치야. 다음 데이터를 Result, 구간(split), 스트로크 단위로 분석해서 마크다운 형식으로 피드백을 줘. 단, 답변 길이는 핵심만 짧게 요약해줘. 인터벌과 단일은 workout_type 데이터에서 확인 가능하니 경우를 나눠서 설명해줘.\n" + promptContext }] }]
             })
         });
 
