@@ -634,11 +634,11 @@ ${top3.map(w => {
             promptContext += `단일 로링의 경우 다음 목표와 선택된 결과를 비교하라.`
 
             promptContext += `구간|구간번호|스트로크수|목표페이스|운영핵심`
-            promptContext += `스타트|1|1-10|1:40|다리힘폭발`
-            promptContext += `전환|2|11-20|1:55.0|길이유지`
-            promptContext += `초반500|3|21-45|1:55.0|페이스안착`
-            promptContext += `중반1500|4|46-135|1:56.0|페이스방어`
-            promptContext += `후반500|5|136-180|1:55.0|스퍼트`
+            promptContext += `스타트|1|1-10|1:50|다리힘폭발`
+            promptContext += `전환|2|11-20|1:57.0|길이유지`
+            promptContext += `초반500|3|21-45|1:57.0|페이스안착`
+            promptContext += `중반1500|4|46-135|1:57.0|페이스방어`
+            promptContext += `후반500|5|136-180|1:56.0|스퍼트`
 
 
         const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent?key=${geminiKey}`;
