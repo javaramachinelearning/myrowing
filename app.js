@@ -323,11 +323,11 @@ function loadSplitDataByWorkoutId(workoutId) {
             const sDriveLength = calculateStrokeDriveLength(sDistance, sTimeRaw, sStrokeRate);
 
             tr.innerHTML = `
+                <td class="py-2 px-2 text-right text-slate-100">${(index+1)}</td>
                 <td class="py-2 px-2 text-right text-slate-100 font-bold">${formatPm5Time(sTimeRaw)}</td>
                 <td class="py-2 px-2 text-right text-slate-300">${sDistance.toLocaleString()}m</td>
                 <td class="py-2 px-2 text-right text-c2-green font-bold">${formatPm5Pace(sPaceRaw)}</td>
                 <td class="py-2 px-2 text-right text-slate-300">${sWatts || '--'}</td>
-                <td class="py-2 px-2 text-right text-slate-400">${sCaloriesTotal}</td>
                 <td class="py-2 px-2 text-right text-orange-400 font-bold">${sDriveLength}</td>
                 <td class="py-2 px-2 text-right text-[#CCFF00] font-bold pr-3">${sStrokeRate || '--'}</td>
             `;
@@ -361,11 +361,11 @@ function loadSplitDataByWorkoutId(workoutId) {
     const totalDriveLength = calculateStrokeDriveLength(totalDistance, totalTimeRaw, totalStrokeRate);
 
     totalTr.innerHTML = `
+        <td class="py-2 px-2 text-right text-slate-100">&nbsp;</td>
         <td class="py-2 px-2 text-right text-slate-100 font-black">${formatPm5Time(totalTimeRaw)}</td>
         <td class="py-2 px-2 text-right text-slate-200">${totalDistance.toLocaleString()}m</td>
         <td class="py-2 px-2 text-right text-c2-green font-black">${formatPm5Pace(totalPaceRaw)}</td>
         <td class="py-2 px-2 text-right text-slate-200">${totalWatts || '--'}</td>
-        <td class="py-2 px-2 text-right text-slate-400">${workout.calories || workout.calories_total || '--'}</td>
         <td class="py-2 px-2 text-right text-orange-400 font-black">${totalDriveLength}</td>
         <td class="py-2 px-2 text-right text-[#CCFF00] font-black pr-3">${totalStrokeRate || '--'}</td>
     `;
