@@ -231,6 +231,7 @@ function renderWorkoutList(data) {
         const distanceStr = `${Number(w.distance || 0).toLocaleString()}m`;
         
         const timeFormattedStr = w.time_formatted || formatPm5Time(w.time);
+        //const timeFormattedStr = formatPm5Time(w.time - w.rest_time);
         const spmStr = w.stroke_rate ? String(w.stroke_rate) : '--';
         
         let rowPaceRaw = Number(w.pace || 0);
@@ -272,6 +273,8 @@ function loadSplitDataByWorkoutId(workoutId) {
 
     document.getElementById('dashboardContainer').classList.remove('hidden');
     document.getElementById('activeDateLabel').innerText = String(workout.date).substring(0, 10);
+    document.getElementById('activeDateLabel2').innerText = String(workout.date).substring(0, 10);
+
 
     const tbody = document.getElementById('splitTableBody');
     tbody.innerHTML = "";

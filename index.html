@@ -89,7 +89,7 @@
                                 <th class="py-1.5 px-2 text-right">페이스</th>
                                 <th class="py-1.5 px-2 text-right">와트</th>
                                 <th class="py-1.5 px-2 text-right">칼로리</th>
-                                <th class="py-1.5 px-2 text-right text-orange-400">1회당 길이</th>
+                                <th class="py-1.5 px-2 text-right text-orange-400">1회거리</th>
                                 <th class="py-1.5 px-2 text-right text-sky-400 pr-3">s/m</th>
                             </tr>
                         </thead>
@@ -102,6 +102,10 @@
             <div class="bg-slate-900 border border-slate-800 p-4 rounded-2xl shadow-xl space-y-2">
                 <div class="flex justify-between items-center mb-1 border-b border-slate-800 pb-2">
                     <span class="text-xs font-bold text-[#CCFF00] uppercase tracking-wider block">Raw Stroke 상세 분석</span>
+                    <span id="activeDateLabel2" class="text-xs text-[#00FF66] font-mono font-bold"></span>
+                </div>
+                <div class="mt-4 bg-slate-950 border border-slate-800 rounded-xl p-2 w-full h-[250px]">
+                    <canvas id="strokeScatterChart"></canvas>
                 </div>
                 <div class="w-full overflow-x-auto overflow-y-auto max-h-[320px] border border-slate-800 rounded-xl bg-slate-950 no-scrollbar relative">
                     <table class="w-full text-left border-collapse text-[11px] font-mono whitespace-nowrap min-w-[340px]">
@@ -118,9 +122,6 @@
                         </thead>
                         <tbody id="strokeTableBody" class="divide-y divide-slate-900 text-slate-200"></tbody>
                     </table>
-                </div>
-                <div class="mt-4 bg-slate-950 border border-slate-800 rounded-xl p-2 w-full h-[220px]">
-                    <canvas id="strokeScatterChart"></canvas>
                 </div>
             </div>
 
