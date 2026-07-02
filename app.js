@@ -571,6 +571,54 @@ function renderScatterChart(dataPoints) {
     });
 }
 
+
+/**
+ * 기존 API 함수와 별개로, Google Gemini 웹으로 데이터를 전달하는 함수
+ */
+function openGeminiForAnalysis() {
+    if (!currentStrokesData || currentStrokesData.length === 0) {
+        alert("분석할 스트로크 데이터가 없습니다.");
+        return;
+    }
+
+    // 1. 데이터 요약 생성 (너무 긴 데이터는 잘릴 수 있으므로 핵심 위주)
+    const strokeSummary = currentStrokesData.map((s, i) => 
+        `[#${i+1}] ${s.distM}m, ${s.watts}W, ${s.spm}SPM`
+    ).join(' | ');
+
+    // 2. 전문 코칭을 위한 프롬프트 작성
+    const systemInstruction = "너는 전문 로잉 머신 코치야. 다음 스트로크 데이터를 분석해줘.";
+    const prompt = `[로잉 데이터 정밀 분석 요청]
+    
+    분석 데이터:
+    ${strokeSummary}
+
+    요청 사항:
+    1. 스트로크별 출력(Watts) 추이를 분석하여 전체 구간의 회귀계수를 파악하고 피로 누적도를 평가해줘.
+    2. 다리 힘 전달과 페이스 유지 측면에서 문제점을 지적해줘.
+    3. 기록 단축을 위한 실질적인 훈련 팁을 제안해줘.`;
+
+    // 3. Gemini URL 생성 
+    const targetUrl = `https://aistudio.google.com/app/prompts/new_chat?prompt=${encodeURIComponent(prompt)}`;
+	
+    makeClipBoard4AI(prompt)
+ 
+    // 4. 새 창에서 Google Gemini 열기
+    //window.open(targetUrl, '_blank');
+}
+
+
+function makeClipBoard4AI(prompt) {
+    // 2. 클립보드에 데이터 복사
+    navigator.clipboard.writeText(prompt).then(() => {
+        alert("분석 데이터가 클립보드에 복사되었습니다. Gemini 창이 열리면 [Ctrl+V]로 붙여넣으세요.");
+        // 3. Gemini 페이지 열기
+        window.open("https://gemini.google.com/app", '_blank');
+    }).catch(err => {
+        alert("복사 실패: " + err);
+    });
+}
+
 async function generateAiReport(type) {
     const geminiKey = localStorage.getItem('gemini_api_key');
     if (!geminiKey) {
