@@ -558,10 +558,12 @@ function renderScatterChart(dataPoints) {
             ]
         },
         options: {
+	    responsive: true,
+            maintainAspectRatio: false, // 이 부분이 중요!
             plugins: {
                 title: { 
                     display: true, 
-                    text: `회귀분석 기울기(a): ${slope.toFixed(4)}`, 
+                    text: `회귀분석 기울기(a): ${slope.toFixed(4)} + ${intercept.toFixed(0)}`, 
                     color: '#facc15' // 타이틀도 노란색으로 강조
                 }
             }
