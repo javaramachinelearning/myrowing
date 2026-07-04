@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="description" content="발급받은 Concept2 API Key와 ID를 로잉 분석 앱에 설정하는 방법. 개인정보 브라우저 로컬 저장 안내.">
+    <meta name="keywords" content="Concept2 앱 설정, API 연동, 브라우저 저장, 개인정보 보호">
+    <title>앱 내 환경 설정 - 발급받은 Key 적용하기 | Concept2 가이드</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <link rel="stylesheet" href="../style.css">
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen font-sans antialiased pb-12">
+    <header class="sticky top-0 z-40 border-b border-slate-800 bg-slate-900/80 backdrop-blur px-4 py-3 flex items-center gap-3">
+        <a href="../index.html" class="text-slate-400 hover:text-[#00FF66] transition">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+            </svg>
+        </a>
+        <h1 class="text-base font-black tracking-wider uppercase text-slate-200">앱 사용법</h1>
+    </header>
+    <main class="p-4 md:p-6 max-w-3xl mx-auto space-y-6 mt-4">
+        <article class="bg-slate-900 border border-slate-800 p-6 rounded-2xl shadow-xl">
+            <header class="mb-6 border-b border-slate-800 pb-4">
+                <span class="text-xs font-bold text-[#00FF66] uppercase tracking-wider block mb-2">설정법 2 (Setting)</span>
+                <h1 class="text-2xl md:text-3xl font-black text-white leading-tight">앱에 연동 정보 등록하기</h1>
+            </header>
+            <section class="prose prose-invert prose-slate max-w-none">
+                <p class="text-slate-300 leading-relaxed text-lg mb-4">
+                    획득한 인증 키와 ID를 앱에 입력하면, 그 순간부터 나만의 강력한 맞춤형 로잉 대시보드가 완성됩니다.
+                </p>
+                <h2 class="text-xl font-bold text-[#CCFF00] mt-8 mb-3">설정 모달 열기 및 등록</h2>
+                <ul class="text-slate-300 leading-relaxed list-decimal list-inside space-y-3">
+                    <li>대시보드 메인 화면 우측 상단의 <strong>톱니바퀴(⚙️) 아이콘</strong>을 클릭하여 설정 모달을 엽니다.</li>
+                    <li><strong>Concept2 Access Token:</strong> 발급받은 긴 영문/숫자 조합의 토큰을 붙여넣습니다.</li>
+                    <li><strong>User ID:</strong> 본인의 Concept2 고유 숫자 ID (예: 2708646)를 입력합니다.</li>
+                    <li><strong>Gemini API Key (선택):</strong> AI 분석을 앱 안에서 바로 확인하려면 입력합니다.</li>
+                    <li><strong>정보 세이브</strong> 버튼을 누르고 [실시간 로그북 동기화]를 클릭해 통신 테스트를 진행합니다.</li>
+                </ul>
+                <div class="mt-8 p-4 bg-slate-950 border border-slate-800 rounded-xl">
+                    <h3 class="text-sm font-bold text-slate-400 uppercase mb-2">💡 부가 설명 (철저한 개인정보 보호)</h3>
+                    <p class="text-slate-200 text-sm leading-relaxed">
+                        보안 걱정은 하지 않으셔도 됩니다. <strong>입력하신 모든 연동 데이터(API Key, ID 등)는 오직 사용자 본인의 브라우저 내부(Local Storage)에만 암호화되어 저장</strong>되며, 그 어떤 외부 제3자 서버나 데이터베이스로도 수집되거나 전송되지 않습니다.
+                    </p>
+                </div>
+            </section>
+        </article>
+    </main>
+</body>
+</html>

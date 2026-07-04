@@ -13,6 +13,11 @@
 
     <header class="sticky top-0 z-40 border-b border-slate-800 bg-slate-900/80 backdrop-blur px-4 py-3 flex items-center justify-between">
         <div class="flex items-center gap-2">
+            <button onclick="toggleSidebar(true)" class="text-slate-400 hover:text-[#00FF66] focus:outline-none transition cursor-pointer mr-1">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+                </svg>
+            </button>
             <div id="statusDot" class="w-2.5 h-2.5 rounded-full bg-red-500 animate-pulse"></div>
             <h1 class="text-base font-black tracking-wider uppercase text-slate-200">Concept2 Dashboard</h1>
         </div>
@@ -185,6 +190,69 @@
         </div>
     </div>
 
+    <!-- Sidebar Overlay -->
+    <div id="sidebarOverlay" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 hidden opacity-0 transition-opacity duration-300" onclick="toggleSidebar(false)"></div>
+    
+    <!-- Sidebar Menu -->
+    <div id="sidebarMenu" class="fixed inset-y-0 left-0 w-64 bg-slate-900 border-r border-slate-800 z-50 transform -translate-x-full transition-transform duration-300 flex flex-col h-full shadow-2xl">
+        <div class="px-4 py-5 border-b border-slate-800 flex justify-between items-center bg-slate-950">
+            <span class="text-xs font-black tracking-wider uppercase text-slate-300">📚 블로그 및 가이드</span>
+            <button onclick="toggleSidebar(false)" class="text-slate-500 hover:text-slate-200 text-2xl leading-none font-bold p-1 cursor-pointer">&times;</button>
+        </div>
+        <div class="flex-1 overflow-y-auto p-4 space-y-6 no-scrollbar pb-10">
+            <!-- 앱 사용법 -->
+            <div>
+                <h3 class="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2">앱 사용법</h3>
+                <ul class="space-y-1.5 text-sm font-semibold text-slate-300">
+                    <li><a href="blog/use.html" class="block p-2.5 rounded hover:bg-slate-800 hover:text-[#00FF66] transition">대시보드 활용법</a></li>
+                    <li><a href="blog/get4setting.html" class="block p-2.5 rounded hover:bg-slate-800 hover:text-[#00FF66] transition">API Key 획득법</a></li>
+                    <li><a href="blog/setting.html" class="block p-2.5 rounded hover:bg-slate-800 hover:text-[#00FF66] transition">앱 환경 설정법</a></li>
+                </ul>
+            </div>
+            <!-- 로잉 방법 -->
+            <div>
+                <h3 class="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2">로잉 방법</h3>
+                <ul class="space-y-1.5 text-sm font-semibold text-slate-300">
+                    <li><a href="blog/intro.html" class="block p-2.5 rounded hover:bg-slate-800 hover:text-[#00FF66] transition">기초 (Intro)</a></li>
+                    <li><a href="blog/mind.html" class="block p-2.5 rounded hover:bg-slate-800 hover:text-[#00FF66] transition">구호 (Mind)</a></li>
+                    <li><a href="blog/drive.html" class="block p-2.5 rounded hover:bg-slate-800 hover:text-[#00FF66] transition">Drive 단계</a></li>
+                    <li><a href="blog/recovery.html" class="block p-2.5 rounded hover:bg-slate-800 hover:text-[#00FF66] transition">Recovery 단계</a></li>
+                    <li><a href="blog/dragFactor.html" class="block p-2.5 rounded hover:bg-slate-800 hover:text-[#00FF66] transition">저항 (Drag Factor)</a></li>
+                </ul>
+            </div>
+            <!-- 로잉 강화 -->
+            <div>
+                <h3 class="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2">로잉 강화</h3>
+                <ul class="space-y-1.5 text-sm font-semibold text-slate-300">
+                    <li><a href="blog/pelvis.html" class="block p-2.5 rounded hover:bg-slate-800 hover:text-[#00FF66] transition">골반 회전 (Pelvis)</a></li>
+                    <li><a href="blog/watts.html" class="block p-2.5 rounded hover:bg-slate-800 hover:text-[#00FF66] transition">출력 (Watts) 극대화</a></li>
+                    <li><a href="blog/data.html" class="block p-2.5 rounded hover:bg-slate-800 hover:text-[#00FF66] transition">훈련 데이터 (Data)</a></li>
+                    <li><a href="blog/routine.html" class="block p-2.5 rounded hover:bg-slate-800 hover:text-[#00FF66] transition">장기 루틴 (Routine)</a></li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function toggleSidebar(isOpen) {
+            const overlay = document.getElementById('sidebarOverlay');
+            const menu = document.getElementById('sidebarMenu');
+            if (isOpen) {
+                overlay.classList.remove('hidden');
+                // 약간의 딜레이를 주어 transition이 적용되도록 함
+                setTimeout(() => {
+                    overlay.classList.remove('opacity-0');
+                    menu.classList.remove('-translate-x-full');
+                }, 10);
+            } else {
+                overlay.classList.add('opacity-0');
+                menu.classList.add('-translate-x-full');
+                setTimeout(() => {
+                    overlay.classList.add('hidden');
+                }, 300);
+            }
+        }
+    </script>
     <script src="app.js"></script>
 </body>
 </html>

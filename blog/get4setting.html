@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="description" content="앱 동기화를 위한 Concept2 API Key 및 User ID 발급 방법. 구글 AI API Key 무료 발급 방법 안내.">
+    <meta name="keywords" content="Concept2 API Key, Concept2 ID 확인, 구글 Gemini API Key 발급">
+    <title>연동 설정 가이드 - API Key 및 ID 발급받기 | Concept2 가이드</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <link rel="stylesheet" href="../style.css">
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen font-sans antialiased pb-12">
+    <header class="sticky top-0 z-40 border-b border-slate-800 bg-slate-900/80 backdrop-blur px-4 py-3 flex items-center gap-3">
+        <a href="../index.html" class="text-slate-400 hover:text-[#00FF66] transition">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+            </svg>
+        </a>
+        <h1 class="text-base font-black tracking-wider uppercase text-slate-200">앱 사용법</h1>
+    </header>
+    <main class="p-4 md:p-6 max-w-3xl mx-auto space-y-6 mt-4">
+        <article class="bg-slate-900 border border-slate-800 p-6 rounded-2xl shadow-xl">
+            <header class="mb-6 border-b border-slate-800 pb-4">
+                <span class="text-xs font-bold text-[#00FF66] uppercase tracking-wider block mb-2">설정법 1 (Get4Setting)</span>
+                <h1 class="text-2xl md:text-3xl font-black text-white leading-tight">필수 연동 Key 및 ID 획득하기</h1>
+            </header>
+            <section class="prose prose-invert prose-slate max-w-none">
+                <p class="text-slate-300 leading-relaxed text-lg mb-4">
+                    이 분석 앱을 사용하려면 Concept2 공식 로그북에서 본인의 데이터를 가져올 수 있는 '열쇠(API Key)'가 필요합니다.
+                </p>
+                <h2 class="text-xl font-bold text-[#CCFF00] mt-8 mb-3">1. Concept2 API Key & ID (필수)</h2>
+                <ul class="text-slate-300 leading-relaxed list-decimal list-inside space-y-2">
+                    <li><a href="https://log.concept2.com" target="_blank" class="text-sky-400 hover:underline">Concept2 Logbook 사이트</a>에 로그인합니다.</li>
+                    <li>우측 상단 프로필 > <strong>Edit Profile</strong>로 들어가면 상단 URL(주소창)이나 프로필 페이지 내에 본인의 고유 <strong>User ID (예: 2708646)</strong>가 보입니다. 이를 복사합니다.</li>
+                    <li>다시 프로필 메뉴에서 <strong>Applications</strong> (또는 Developer/API) 메뉴로 진입하여 새로운 Personal Access Token을 생성하고 발급된 긴 문자열을 복사합니다.</li>
+                </ul>
+                
+                <h2 class="text-xl font-bold text-[#CCFF00] mt-8 mb-3">2. Gemini AI API Key (선택)</h2>
+                <p class="text-slate-300 leading-relaxed mb-2">앱 내에서 바로 코칭 피드백을 보고 싶다면 구글 AI 스튜디오에서 무료 API 키를 받을 수 있습니다.</p>
+                <ul class="text-slate-300 leading-relaxed list-decimal list-inside space-y-2">
+                    <li><a href="https://aistudio.google.com/app/apikey" target="_blank" class="text-sky-400 hover:underline">Google AI Studio</a>에 접속합니다.</li>
+                    <li>새 프로젝트를 만들고 <strong>Create API Key</strong> 버튼을 눌러 키를 발급받습니다.</li>
+                </ul>
+                
+                <div class="mt-8 p-4 bg-slate-950 border border-slate-800 rounded-xl">
+                    <h3 class="text-sm font-bold text-slate-400 uppercase mb-2">💡 부가 설명 (자동 클립보드 복사 병행)</h3>
+                    <p class="text-slate-200 text-sm leading-relaxed">
+                        구글 API 키 발급이 번거롭다면 비워두셔도 무방합니다. 앱 하단의 '✨ Gemini 링크'를 누르면, 앱이 내부적으로 스트로크 데이터가 포함된 풍성한 프롬프트를 <strong>클립보드에 자동 생성 및 복사</strong>해 줍니다. 복사된 내용을 제미나이 화면에 붙여넣기만 하세요!
+                    </p>
+                </div>
+            </section>
+        </article>
+    </main>
+</body>
+</html>

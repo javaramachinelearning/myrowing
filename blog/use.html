@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="description" content="Concept2 Logbook 모바일 통합 분석 앱 사용법. 운동 결과부터 Split, Stroke 산점도 조회 및 AI 코칭 활용법 안내.">
+    <meta name="keywords" content="Concept2 대시보드, 로잉 앱 활용법, AI 로잉 코치, 산점도 분석">
+    <title>앱 활용법 - 대시보드 및 AI 분석 활용하기 | Concept2 가이드</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <link rel="stylesheet" href="../style.css">
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen font-sans antialiased pb-12">
+    <header class="sticky top-0 z-40 border-b border-slate-800 bg-slate-900/80 backdrop-blur px-4 py-3 flex items-center gap-3">
+        <a href="../index.html" class="text-slate-400 hover:text-[#00FF66] transition">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+            </svg>
+        </a>
+        <h1 class="text-base font-black tracking-wider uppercase text-slate-200">앱 사용법</h1>
+    </header>
+    <main class="p-4 md:p-6 max-w-3xl mx-auto space-y-6 mt-4">
+        <article class="bg-slate-900 border border-slate-800 p-6 rounded-2xl shadow-xl">
+            <header class="mb-6 border-b border-slate-800 pb-4">
+                <span class="text-xs font-bold text-[#00FF66] uppercase tracking-wider block mb-2">활용법 1 (Use)</span>
+                <h1 class="text-2xl md:text-3xl font-black text-white leading-tight">대시보드 완벽 마스터 가이드</h1>
+            </header>
+            <section class="prose prose-invert prose-slate max-w-none">
+                <p class="text-slate-300 leading-relaxed text-lg mb-4">
+                    이 분석 앱은 Concept2 서버에서 여러분의 기록을 가져와 한눈에 파악하기 쉽게 가공해줍니다. 데이터를 깊이 있게 쪼개어 보는 방법을 익혀보세요.
+                </p>
+                <p class="text-slate-300 leading-relaxed text-lg mb-4">
+                    선수조건 : Concept2 로잉과 연결하는 ErgData 앱을 사용한 사용자를 위한 앱입니다. 다른 브랜드 로잉머신이나 ErgData 앱 미사용자는 이 대시보드를 사용할 수 없습니다.
+                </p>
+
+                <h2 class="text-xl font-bold text-[#CCFF00] mt-8 mb-3">드릴다운(Drill-Down) 분석 흐름</h2>
+                <ol class="text-slate-300 leading-relaxed list-decimal list-inside space-y-3">
+                    <li><strong>운동 결과 조회:</strong> 메인 리스트에서 훈련(인터벌/단일) 필터를 적용하거나 정렬하여 원하는 세션을 클릭합니다.</li>
+                    <li><strong>Split(구간) 데이터 확인:</strong> 세션을 클릭하면 아래에 구간별 요약(Split) 테이블이 열립니다. 여기서 1회 거리와 출력(Watts)을 확인하세요.</li>
+                    <li><strong>Stroke 산점도 분석:</strong> 특정 구간(행)을 클릭하면 그 아래에 해당 구간의 <strong>개별 스트로크 데이터가 산점도와 상세 표</strong>로 나타납니다. 기울기가 양수인지 음수인지 확인하며 체력 유지력을 진단하세요.</li>
+                </ol>
+                <div class="mt-8 p-4 bg-slate-950 border border-slate-800 rounded-xl">
+                    <h3 class="text-sm font-bold text-slate-400 uppercase mb-2">💡 부가 설명 (AI 문의 분기)</h3>
+                    <p class="text-slate-200 text-sm leading-relaxed">
+                        분석이 어렵다면 하단의 <strong>✨ Gemini AI 분석</strong> 기능을 사용하세요. API 키가 등록되어 있다면 버튼을 눌러 앱 내에서 바로 결과를 보고, 키가 없다면 '✨ Gemini 링크'를 눌러 복사된 전문 코칭 프롬프트를 구글 제미나이 웹에서 그대로 붙여넣어 해답을 얻을 수 있습니다.
+                    </p>
+                </div>
+            </section>
+        </article>
+    </main>
+</body>
+</html>
