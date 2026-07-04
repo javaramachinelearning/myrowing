@@ -571,153 +571,98 @@ function renderScatterChart(dataPoints) {
     });
 }
 
+// --- AI 프롬프트 생성 (통합 로직) ---
+function generateAiPrompt(type) {
+    let promptBase = "너는 전문 로잉 머신 코치야. 다음 데이터를 분석해줘.\n";
 
-/**
- * 기존 API 함수와 별개로, Google Gemini 웹으로 데이터를 전달하는 함수
- */
-function openGeminiForAnalysis() {
-    if (!currentStrokesData || currentStrokesData.length === 0) {
-        alert("분석할 스트로크 데이터가 없습니다.");
-        return;
+    // 1. 공통 데이터 추출
+    const activeDateLabel = document.getElementById('activeDateLabel').innerText;
+    const result = localCacheData.find(d => String(d.date).substring(0, 10) === activeDateLabel);
+    
+    const splitSummary = currentSplitsData.length > 0 
+        ? currentSplitsData.map((s, i) => `[구간 ${i+1}] ${s.distance || 0}m, ${s.time || 0}dsec, ${s.stroke_rate || 0}SPM`).join(' | ')
+        : "상세 스플릿 데이터 없음";
+
+    const strokeSummary = currentStrokesData.length > 0 
+        ? currentStrokesData.map((s, i) => `[#${i+1}] ${s.distM}m, ${s.watts}W, ${s.spm}SPM`).join(' | ')
+        : "상세 스트로크 데이터 없음";
+
+    // 2. 공통 요청 사항 정의
+    const getPromptRequest = (isInterval) => `
+			요청:
+			1. 제공된 Result 데이터를 분석하여 전체적인 훈련 효율(회귀계수 등)을 평가해줘.
+			2. ${isInterval} 구조에 따라, 구간별 페이스 유지력과 스트로크당 출력(Watts)의 일관성을 진단해줘.
+			3. 다리 힘 전달, 리듬, 구간별 개선점 및 다음 훈련을 위한 최적의 코칭 팁을 제안해줘.`;
+
+    // 3. 타입별 로직
+    if (type === 'analysis' || type === 'today') {
+        if (!result) return "데이터 없음.";
+
+        const typeStr = result.workout_type || "";
+        const isInterval = typeStr.startsWith("Variable") ? "인터벌 훈련" : 
+                           typeStr.startsWith("Fixed") ? "단일 세션 훈련" : "기타 훈련";
+
+        let context = `[Result 메타데이터]: 유형=${isInterval}, 총거리=${result.distance}m, 총시간=${result.time/10} sec, 평균SPM=${result.stroke_rate}
+			[스플릿(구간) 데이터]: ${splitSummary}
+			${type === 'analysis' ? `[상세 스트로크 데이터]: ${strokeSummary}` : ''}`;
+
+        return `${promptBase}${context}${getPromptRequest(isInterval)}`;
     }
 
-    // 1. 데이터 요약 생성 (너무 긴 데이터는 잘릴 수 있으므로 핵심 위주)
-    const strokeSummary = currentStrokesData.map((s, i) => 
-        `[#${i+1}] ${s.distM}m, ${s.watts}W, ${s.spm}SPM`
-    ).join(' | ');
+    if (type === 'recent_10') {
+        return `${promptBase} 최근 10개 Result 요약: ${localCacheData.slice(0, 10).map(w => `${w.distance}m`).join(', ')}. 전체적인 체력 추이와 방향 분석을 줘.`;
+    }
 
-    // 2. 전문 코칭을 위한 프롬프트 작성
-    const systemInstruction = "너는 전문 로잉 머신 코치야. 다음 스트로크 데이터를 분석해줘.";
-    const prompt = `[로잉 데이터 정밀 분석 요청]
-    
-    분석 데이터:
-    ${strokeSummary}
+    if (type === 'top_3') {
+        return `${promptBase} 최고 페이스 Top 3 Result 분석과 기록 갱신 팁을 줘.`;
+    }
 
-    요청 사항:
-    1. 스트로크별 출력(Watts) 추이를 분석하여 전체 구간의 회귀계수를 파악하고 피로 누적도를 평가해줘.
-    2. 다리 힘 전달과 페이스 유지 측면에서 문제점을 지적해줘.
-    3. 기록 단축을 위한 실질적인 훈련 팁을 제안해줘.`;
-
-    // 3. Gemini URL 생성 
-    const targetUrl = `https://aistudio.google.com/app/prompts/new_chat?prompt=${encodeURIComponent(prompt)}`;
-	
-    makeClipBoard4AI(prompt)
- 
-    // 4. 새 창에서 Google Gemini 열기
-    //window.open(targetUrl, '_blank');
+    return promptBase;
 }
 
-
-function makeClipBoard4AI(prompt) {
-    // 2. 클립보드에 데이터 복사
+// --- AI 호출 및 복사 (수정 완료) ---
+function openGeminiForAnalysis() {
+    if (!currentStrokesData.length) return alert("데이터 없음");
+    const prompt = generateAiPrompt('analysis');
+    
+    // Clipboard API 사용
     navigator.clipboard.writeText(prompt).then(() => {
-        alert("분석 데이터가 클립보드에 복사되었습니다. Gemini 창이 열리면 [Ctrl+V]로 붙여넣으세요.");
-        // 3. Gemini 페이지 열기
+        alert("프롬프트 복사 완료. Gemini 창을 엽니다.");
         window.open("https://gemini.google.com/app", '_blank');
     }).catch(err => {
-        alert("복사 실패: " + err);
+        console.error("클립보드 복사 실패:", err);
+        alert("복사 실패. 수동으로 복사하세요.");
     });
 }
 
 async function generateAiReport(type) {
-    const geminiKey = localStorage.getItem('gemini_api_key');
-    if (!geminiKey) {
-        alert("설정 모달에서 Gemini API Key를 먼저 입력해주세요.");
-        toggleConfigModal(true);
+    const key = localStorage.getItem('gemini_api_key');
+    if (!key) {
+        alert("Gemini API Key가 설정되지 않았습니다. 설정에서 입력하세요.");
         return;
     }
-
+    
     const feedbackBox = document.getElementById('aiFeedbackBox');
     feedbackBox.classList.remove('hidden');
-    feedbackBox.innerHTML = '<span class="animate-pulse text-[#00FF66]">AI가 데이터를 분석 중입니다... 🚣</span>';
-
+    feedbackBox.innerHTML = '분석 중...';
+    
     try {
-        let promptContext = "";
-
-        if (type === 'today') {
-            const activeDate = document.getElementById('activeDateLabel').innerText;
-            const todayWorkout = localCacheData.find(w => String(w.date).substring(0, 10) === activeDate);
-            if (!todayWorkout) throw new Error("선택된 세션이 없습니다.");
-
-            const typeStr = String((todayWorkout.workout && todayWorkout.workout.type) || todayWorkout.workout_type || todayWorkout.type || "");
-            const workoutTypeName = typeStr === 'VariableInterval' ? "인터벌 훈련" : "단일 로잉 훈련";
-
-            promptContext = `다음은 오늘(선택된 날짜)의 로잉 머신 데이터입니다. 
-				훈련 유형(workout_type): ${workoutTypeName} (${typeStr}),
-				거리: ${todayWorkout.distance}m, 
-				시간(0.1초): ${todayWorkout.time}, 
-				평균 SPM: ${todayWorkout.stroke_rate}. 
-				이 데이터를 바탕으로 오늘의 운동을 평가하고 조언해주세요.`;
-        } else if (type === 'recent_10') {
-            const recent10 = localCacheData.slice(0, 10);
-            promptContext = `다음은 최근 10번의 로잉 세션 요약입니다. 
-		${recent10.map(w => {
-                const tStr = String((w.workout && w.workout.type) || w.workout_type || w.type || "");
-                const wName = tStr === 'VariableInterval' ? "인터벌" : "단일";
-                return `일자: ${String(w.date).substring(0, 10)}, 유형: ${wName}, 거리: ${w.distance}m, SPM: ${w.stroke_rate}`;
-            }).join(' | ')}.
-		최근 10건의 데이터를 바탕으로 운동 추이와 체력 변화, 그리고 향후 훈련 방향을 분석해주세요.`;
-        } else if (type === 'top_3') {
-            const top3 = [...localCacheData].sort((a, b) => {
-                let paceA = a.pace || ((a.time / 10) / a.distance) * 5000;
-                let paceB = b.pace || ((b.time / 10) / b.distance) * 5000;
-                return paceA - paceB;
-            }).slice(0, 3);
-            promptContext = `다음은 나의 기록 중 페이스가 가장 빨랐던 Top 3 세션입니다. 
-	${top3.map(w => {
-                const tStr = String((w.workout && w.workout.type) || w.workout_type || w.type || "");
-                const wName = tStr === 'VariableInterval' ? "인터벌" : "단일";
-                return `일자: ${String(w.date).substring(0, 10)}, 유형: ${wName}, 거리: ${w.distance}m, SPM: ${w.stroke_rate}`;
-            }).join(' | ')}.
-	왜 이 3건이 기록이 좋았을지 SPM과 거리 측면에서 분석하고, 앞으로 이 기록을 갱신하기 위한 팁을 주세요.`;
-        }
-
-        if (currentSplitsData && currentSplitsData.length > 0) {
-            const splitSummary = currentSplitsData.map((s, idx) => {
-                const pace = ((s.time / 10) / s.distance) * 500;
-                return `구간${idx + 1}: ${s.distance}m, 페이스:${pace.toFixed(0)}s, SPM:${s.stroke_rate}`;
-            }).join(' | ');
-
-            promptContext += `\n[상세 구간(Split) 기록]\n${splitSummary}\n`;
-        }
-
-        if (currentStrokesData && currentStrokesData.length > 0) {
-            const totalStrokes = currentStrokesData.length;
-            const avgPace = currentStrokesData.reduce((acc, s) => acc + s.p, 0) / totalStrokes;
-            const avgWatts = currentStrokesData.reduce((acc, s) => acc + s.watts, 0) / totalStrokes;
-
-            promptContext += `\n[상세 스트로크 통계 (${totalStrokes}회)]\n`;
-            promptContext += `- 평균 페이스(Deci): ${avgPace.toFixed(0)}\n`;
-            promptContext += `- 평균 출력: ${avgWatts.toFixed(0)}W\n`;
-            promptContext += `- 페이스 변화: 최고 ${Math.min(...currentStrokesData.map(s => s.p))} ~ 최저 ${Math.max(...currentStrokesData.map(s => s.p))}\n`;
-            promptContext += `- 최근 5회 상세 (페이스/SPM/Watts): ${currentStrokesData.slice(-5).map(s => `${s.p}/${s.spm}/${s.watts}`).join(' | ')}`;
-        }
-
-        promptContext += `\n단일 로링의 경우 다음 목표와 선택된 결과를 비교하라.\n`
-        promptContext += `구간|구간번호|스트로크수|목표페이스|운영핵심\n`
-        promptContext += `스타트|1|1-10|1:50|다리힘폭발\n`
-        promptContext += `전환|2|11-20|1:57.0|길이유지\n`
-        promptContext += `초반500|3|21-45|1:57.0|페이스안착`
-        promptContext += `중반1500|4|46-135|1:57.0|페이스방어`
-        promptContext += `후반500|5|136-180|1:56.0|스퍼트`
-
-        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent?key=${geminiKey}`;
-        const response = await fetch(url, {
+        const prompt = generateAiPrompt(type);
+        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent?key=${key}`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                contents: [{ parts: [{ text: "너는 전문 로잉 머신 코치야. 다음 데이터를 Result, 구간(split), 스트로크 단위로 분석해서 마크다운 형식으로 피드백을 줘. 단, 답변 길이는 핵심만 짧게 요약해줘. 인터벌과 단일은 workout_type 데이터에서 확인 가능하니 경우를 나눠서 설명해줘.\n" + promptContext }] }]
-            })
+            body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
         });
-
-        if (!response.ok) {
-            throw new Error(`Gemini API Error: ${response.status}`);
-        }
-
+        
         const result = await response.json();
-        const text = result.candidates[0].content.parts[0].text;
-
-        feedbackBox.innerHTML = marked.parse(text);
+        
+        if (result.candidates && result.candidates[0].content) {
+            const text = result.candidates[0].content.parts[0].text;
+            // marked 라이브러리 사용 가정
+            feedbackBox.innerHTML = typeof marked !== 'undefined' ? marked.parse(text) : text;
+        } else {
+            throw new Error(result.error?.message || "응답 오류");
+        }
     } catch (err) {
         feedbackBox.innerHTML = `<span class="text-red-400">분석 실패: ${err.message}</span>`;
     }

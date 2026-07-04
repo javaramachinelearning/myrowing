@@ -24,7 +24,8 @@
         </button>
     </header>
 
-    <main class="p-4 space-y-5 max-w-md mx-auto">
+    <!--main class="p-4 space-y-5 max-w-md mx-auto"-->
+    <main class="p-4 md:p-6 space-y-5 max-w-7xl mx-auto">
         
         <div class="bg-slate-900 border border-slate-800 p-4 rounded-2xl space-y-3 shadow-xl">
             <div class="flex justify-between items-center">
@@ -102,15 +103,6 @@
             <div class="bg-slate-900 border border-slate-800 p-4 rounded-2xl shadow-xl space-y-2">
                 <div class="flex justify-between items-center mb-1 border-b border-slate-800 pb-2">
                     <span class="text-xs font-bold text-[#CCFF00] uppercase tracking-wider block">Raw Stroke 상세 분석</span>
-
-		    <div class="flex items-center gap-4 mb-2">    
-   			 <a href="javascript:void(0)" 
-    			   onclick="openGeminiForAnalysis()" 
-     			  class="text-xs font-bold text-sky-400 hover:text-sky-300 hover:underline cursor-pointer transition">
-      			  ✨ Gemini 분석 링크
-  			</a>
-		     </div>
-
                     <span id="activeDateLabel2" class="text-xs text-[#00FF66] font-mono font-bold"></span>
                 </div>
                 <div class="mt-4 bg-slate-950 border border-slate-800 rounded-xl p-2 w-full h-[250px]">
@@ -139,7 +131,16 @@
                     <span class="text-xs font-bold text-[#00FF66] uppercase tracking-wider flex items-center gap-1">
                         ✨ Gemini AI 분석
                     </span>
+                    <span class="text-xs font-bold text-[#00FF66] uppercase tracking-wider flex items-center gap-1">
+   			 <a href="javascript:void(0)" 
+    			   onclick="openGeminiForAnalysis()" 
+     			  class="text-xs font-bold text-sky-400 hover:text-sky-300 hover:underline cursor-pointer transition">
+      			 ✨ Gemini 링크 (AI키 불필요)
+  			</a>
+                    </span>
+
                 </div>
+
                 <div class="grid grid-cols-3 gap-2">
                     <button onclick="generateAiReport('today')" class="bg-slate-800 text-slate-300 text-[10px] font-bold py-2 rounded-lg hover:bg-slate-700 hover:text-white transition">당일 분석</button>
                     <button onclick="generateAiReport('recent_10')" class="bg-slate-800 text-slate-300 text-[10px] font-bold py-2 rounded-lg hover:bg-slate-700 hover:text-white transition">최근 10건 비교</button>
