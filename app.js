@@ -687,12 +687,16 @@ async function generateAiReport(type) {
                 }
             }
 
-            // marked 라이브러리 사용 가정
-            feedbackBox.innerHTML = typeof marked !== 'undefined' ? marked.parse(cleanedText) : cleanedText;
+            feedbackBox.innerHTML = ''; // 초기화
             
             if (radarData) {
                 renderRadarChart(feedbackBox, radarData);
             }
+
+            const textContainer = document.createElement('div');
+            textContainer.className = "mt-4"; // 차트 아래에 텍스트가 오도록 여백 추가
+            textContainer.innerHTML = typeof marked !== 'undefined' ? marked.parse(cleanedText) : cleanedText;
+            feedbackBox.appendChild(textContainer);
         } else {
             throw new Error(result.error?.message || "응답 오류");
         }
