@@ -25,24 +25,104 @@
                 <h1 class="text-2xl md:text-3xl font-black text-white leading-tight">대시보드 완벽 마스터 가이드</h1>
             </header>
             <section class="prose prose-invert prose-slate max-w-none">
-                <p class="text-slate-300 leading-relaxed text-lg mb-4">
+                <p class="text-slate-300 leading-relaxed text-lg mb-6">
                     이 분석 앱은 Concept2 서버에서 여러분의 기록을 가져와 한눈에 파악하기 쉽게 가공해줍니다. 데이터를 깊이 있게 쪼개어 보는 방법을 익혀보세요.
                 </p>
-                <p class="text-slate-300 leading-relaxed text-lg mb-4">
-                    선수조건 : Concept2 로잉과 연결하는 ErgData 앱을 사용한 사용자를 위한 앱입니다. 다른 브랜드 로잉머신이나 ErgData 앱 미사용자는 이 대시보드를 사용할 수 없습니다.
-                </p>
-
-                <h2 class="text-xl font-bold text-[#CCFF00] mt-8 mb-3">드릴다운(Drill-Down) 분석 흐름</h2>
-                <ol class="text-slate-300 leading-relaxed list-decimal list-inside space-y-3">
-                    <li><strong>운동 결과 조회:</strong> 메인 리스트에서 훈련(인터벌/단일) 필터를 적용하거나 정렬하여 원하는 세션을 클릭합니다.</li>
-                    <li><strong>Split(구간) 데이터 확인:</strong> 세션을 클릭하면 아래에 구간별 요약(Split) 테이블이 열립니다. 여기서 1회 거리와 출력(Watts)을 확인하세요.</li>
-                    <li><strong>Stroke 산점도 분석:</strong> 특정 구간(행)을 클릭하면 그 아래에 해당 구간의 <strong>개별 스트로크 데이터가 산점도와 상세 표</strong>로 나타납니다. 기울기가 양수인지 음수인지 확인하며 체력 유지력을 진단하세요.</li>
-                </ol>
-                <div class="mt-8 p-4 bg-slate-950 border border-slate-800 rounded-xl">
-                    <h3 class="text-sm font-bold text-slate-400 uppercase mb-2">💡 부가 설명 (AI 문의 분기)</h3>
-                    <p class="text-slate-200 text-sm leading-relaxed">
-                        분석이 어렵다면 하단의 <strong>✨ Gemini AI 분석</strong> 기능을 사용하세요. API 키가 등록되어 있다면 버튼을 눌러 앱 내에서 바로 결과를 보고, 키가 없다면 '✨ Gemini 링크'를 눌러 복사된 전문 코칭 프롬프트를 구글 제미나이 웹에서 그대로 붙여넣어 해답을 얻을 수 있습니다.
+                
+                <div class="mb-10 p-5 border-l-4 border-red-500 bg-red-950/20 rounded-r-2xl shadow-sm">
+                    <h3 class="text-red-400 font-bold mb-2 flex items-center gap-2 mt-0">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
+                        </svg>
+                        필수 선수 조건
+                    </h3>
+                    <p class="text-red-200 text-sm leading-relaxed mb-0">
+                        Concept2 로잉머신과 연동되는 <strong>ErgData 앱 사용자</strong>를 위한 대시보드입니다.<br>
+                        타 브랜드 로잉머신이나 ErgData 앱을 사용하지 않는 분은 데이터를 연동할 수 없습니다.
                     </p>
+                </div>
+
+                <h2 class="text-2xl font-bold text-[#CCFF00] mt-8 mb-6 border-b border-slate-800 pb-3">드릴다운(Drill-Down) 분석 흐름 : 4단계</h2>
+                
+                <div class="space-y-12">
+                    <!-- 단계 1 -->
+                    <div class="relative pl-8 border-l-2 border-slate-800">
+                        <div class="absolute -left-[9px] top-1 w-4 h-4 rounded-full bg-[#00FF66] shadow-[0_0_10px_#00FF66]"></div>
+                        <h3 class="text-lg font-bold text-slate-100 mb-2 mt-0">1. 운동 결과 조회</h3>
+                        <p class="text-slate-400 text-sm mb-4">메인 리스트에서 훈련(인터벌/단일) 필터를 적용하거나 정렬하여 원하는 세션을 클릭합니다.</p>
+                        <figure class="overflow-hidden rounded-xl border border-slate-700 shadow-2xl bg-slate-900 group m-0">
+                            <img src="img/result.jpg" alt="운동 결과 화면" class="w-full h-auto object-cover opacity-80 group-hover:opacity-100 transition duration-500 transform group-hover:scale-[1.02] m-0">
+                        </figure>
+                    </div>
+
+                    <!-- 단계 2 -->
+                    <div class="relative pl-8 border-l-2 border-slate-800">
+                        <div class="absolute -left-[9px] top-1 w-4 h-4 rounded-full bg-[#00FF66] shadow-[0_0_10px_#00FF66]"></div>
+                        <h3 class="text-lg font-bold text-slate-100 mb-2 mt-0">2. Split(구간) 데이터 확인</h3>
+                        <p class="text-slate-400 text-sm mb-4">세션을 클릭하면 아래에 구간별 요약(Split) 테이블이 열립니다. 여기서 1회 거리와 출력(Watts)을 확인하세요.</p>
+                        <figure class="overflow-hidden rounded-xl border border-slate-700 shadow-2xl bg-slate-900 group m-0">
+                            <img src="img/split.jpg" alt="구간별 데이터 화면" class="w-full h-auto object-cover opacity-80 group-hover:opacity-100 transition duration-500 transform group-hover:scale-[1.02] m-0">
+                        </figure>
+                    </div>
+
+                    <!-- 단계 3 -->
+                    <div class="relative pl-8 border-l-2 border-slate-800">
+                        <div class="absolute -left-[9px] top-1 w-4 h-4 rounded-full bg-[#00FF66] shadow-[0_0_10px_#00FF66]"></div>
+                        <h3 class="text-lg font-bold text-slate-100 mb-2 mt-0">3. Stroke 산점도 분석</h3>
+                        <p class="text-slate-400 text-sm mb-4">특정 구간(행)을 클릭하면 그 아래에 해당 구간의 <strong>개별 스트로크 데이터가 산점도와 상세 표</strong>로 나타납니다. 기울기가 양수인지 음수인지 확인하며 체력 유지력을 진단하세요.</p>
+                        <figure class="overflow-hidden rounded-xl border border-slate-700 shadow-2xl bg-slate-900 group m-0">
+                            <img src="img/stroke.jpg" alt="스트로크 산점도 화면" class="w-full h-auto object-cover opacity-80 group-hover:opacity-100 transition duration-500 transform group-hover:scale-[1.02] m-0">
+                        </figure>
+                    </div>
+
+                    <!-- 단계 4 -->
+                    <div class="relative pl-8 border-l-2 border-slate-800">
+                        <div class="absolute -left-[9px] top-1 w-4 h-4 rounded-full bg-[#00FF66] shadow-[0_0_10px_#00FF66]"></div>
+                        <h3 class="text-lg font-bold text-slate-100 mb-2 mt-0">4. AI 분석 (구글 AI API key 등록 경우)</h3>
+                        <p class="text-slate-400 text-sm mb-4">구글 AI API 키가 등록되어 있다면, <strong>좌하단 ✨ Gemini AI 분석</strong> 버튼을 눌러 앱 내에서 즉시 코칭 결과를 볼 수 있습니다.</p>
+                        <figure class="overflow-hidden rounded-xl border border-slate-700 shadow-2xl bg-slate-900 group m-0">
+                            <img src="img/AI2API.jpg" alt="앱 내 AI 분석 화면" class="w-full h-auto object-cover opacity-80 group-hover:opacity-100 transition duration-500 transform group-hover:scale-[1.02] m-0">
+                        </figure>
+                    </div>
+                </div>
+
+                <!-- API 없는 경우 설명 -->
+                <div class="mt-14 p-6 md:p-8 bg-slate-950/80 border border-slate-800 rounded-2xl shadow-inner">
+                    <h3 class="text-xl font-black text-sky-400 tracking-wide mb-3 flex items-center gap-2 mt-0">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        💡 구글 AI API 키가 없을 경우 (수동 복사)
+                    </h3>
+                    <p class="text-slate-300 text-sm leading-relaxed mb-8">
+                        우하단 <strong class="text-sky-400">'✨ Gemini 링크 (AI키 불필요)'</strong>를 누르면 전문 코칭 프롬프트가 자동으로 복사됩니다. 구글 제미나이(또는 챗GPT 등) 웹사이트에 그대로 붙여넣어 해답을 얻을 수 있습니다.
+                    </p>                    
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                        <div class="space-y-3">
+                            <span class="inline-block px-3 py-1 bg-slate-800 text-[#00FF66] text-xs font-bold rounded-full">Step 1. 전문 코칭 프롬프트 복사</span>
+                            <figure class="overflow-hidden rounded-xl border border-slate-700 shadow-lg m-0">
+                                <img src="img/AI2copy.jpg" alt="프롬프트 복사" class="w-full h-auto object-cover hover:scale-105 transition duration-500 m-0">
+                            </figure>
+                        </div>
+                        <div class="space-y-3">
+                            <span class="inline-block px-3 py-1 bg-slate-800 text-[#00FF66] text-xs font-bold rounded-full">Step 2. 구글 Gemini 실행</span>
+                            <figure class="overflow-hidden rounded-xl border border-slate-700 shadow-lg m-0">
+                                <img src="img/AI2gemini.jpg" alt="AI 접속" class="w-full h-auto object-cover hover:scale-105 transition duration-500 m-0">
+                            </figure>
+                        </div>
+                        <div class="space-y-3">
+                            <span class="inline-block px-3 py-1 bg-slate-800 text-[#00FF66] text-xs font-bold rounded-full">Step 3. 프롬프트 붙여넣기 (Ctrl+V)</span>
+                            <figure class="overflow-hidden rounded-xl border border-slate-700 shadow-lg m-0">
+                                <img src="img/AI2prompt.jpg" alt="프롬프트 붙여넣기" class="w-full h-auto object-cover hover:scale-105 transition duration-500 m-0">
+                            </figure>
+                        </div>
+                        <div class="space-y-3">
+                            <span class="inline-block px-3 py-1 bg-slate-800 text-[#00FF66] text-xs font-bold rounded-full">Step 4. AI 응답 결과</span>
+                            <figure class="overflow-hidden rounded-xl border border-slate-700 shadow-lg m-0">
+                                <img src="img/AI2result.jpg" alt="AI 응답 결과" class="w-full h-auto object-cover hover:scale-105 transition duration-500 m-0">
+                            </figure>
+                        </div>
+                    </div>
                 </div>
             </section>
         </article>
