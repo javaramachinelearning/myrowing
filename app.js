@@ -592,7 +592,14 @@ function generateAiPrompt(type) {
 			요청:
 			1. 제공된 Result 데이터를 분석하여 전체적인 훈련 효율(회귀계수 등)을 평가해줘.
 			2. ${isInterval} 구조에 따라, 구간별 페이스 유지력과 스트로크당 출력(Watts)의 일관성을 진단해줘.
-			3. 다리 힘 전달, 리듬, 구간별 개선점 및 다음 훈련을 위한 최적의 코칭 팁을 제안해줘.`;
+			3. 다리 힘 전달, 리듬, 구간별 개선점 및 다음 훈련을 위한 최적의 코칭 팁을 제안해줘.
+                        4. 페이스 유지력|스트로크 연결성|리커버리 리듬|크루즈 주행력|SPM 제어력 5점 척도 지표로 방사형 그래프 데이터를 반환하고   
+                           항상 답변 마지막은 아래 형태로 답변해.                            
+                           페이스 유지력|스트로크 연결성|리커버리 리듬|크루즈 주행력|SPM 제어력 
+                           4.5|3.5|3.0|4.0|3.0  
+                           페이스를 끌어올린 능력이 탁월함|연결이 다소 헐거워짐|일정한 리듬 통제가 요구됨|강력한 크루징 능력 보유|정밀 제어 훈련이 필요  
+
+                        `;
 
     // 3. 타입별 로직
     if (type === 'analysis' || type === 'today') {
@@ -658,12 +665,107 @@ async function generateAiReport(type) {
         
         if (result.candidates && result.candidates[0].content) {
             const text = result.candidates[0].content.parts[0].text;
+            
+            let cleanedText = text;
+            let radarData = null;
+
+            const radarHeader = "페이스 유지력|스트로크 연결성|리커버리 리듬|크루즈 주행력|SPM 제어력";
+            const headerIndex = text.lastIndexOf(radarHeader);
+            
+            if (headerIndex !== -1) {
+                const radarText = text.substring(headerIndex).trim();
+                const lines = radarText.split('\n').map(l => l.trim()).filter(l => l !== '');
+                if (lines.length >= 3) {
+                    const labels = lines[0].split('|').map(s => s.trim());
+                    const scores = lines[1].split('|').map(s => parseFloat(s.trim().replace(/[^0-9.]/g, '')));
+                    const comments = lines[2].split('|').map(s => s.trim());
+                    
+                    if (labels.length === 5 && scores.length === 5) {
+                        radarData = { labels, scores, comments };
+                        cleanedText = text.substring(0, headerIndex).trim();
+                    }
+                }
+            }
+
             // marked 라이브러리 사용 가정
-            feedbackBox.innerHTML = typeof marked !== 'undefined' ? marked.parse(text) : text;
+            feedbackBox.innerHTML = typeof marked !== 'undefined' ? marked.parse(cleanedText) : cleanedText;
+            
+            if (radarData) {
+                renderRadarChart(feedbackBox, radarData);
+            }
         } else {
             throw new Error(result.error?.message || "응답 오류");
         }
     } catch (err) {
         feedbackBox.innerHTML = `<span class="text-red-400">분석 실패: ${err.message}</span>`;
     }
+}
+
+function renderRadarChart(container, radarData) {
+    const chartWrapper = document.createElement('div');
+    chartWrapper.className = "mt-5 bg-slate-900 border border-slate-700 rounded-xl p-4 flex flex-col items-center w-full shadow-lg";
+    
+    const canvasContainer = document.createElement('div');
+    canvasContainer.className = "w-full max-w-[280px] aspect-square relative";
+    const canvas = document.createElement('canvas');
+    canvasContainer.appendChild(canvas);
+    chartWrapper.appendChild(canvasContainer);
+    
+    const commentBox = document.createElement('div');
+    commentBox.className = "mt-4 space-y-3 w-full text-xs";
+    radarData.labels.forEach((label, i) => {
+        const score = radarData.scores[i];
+        const comment = radarData.comments[i] || "";
+        commentBox.innerHTML += `
+            <div class="flex items-start gap-2 border-b border-slate-800 pb-2 mb-2 last:border-0 last:mb-0 last:pb-0">
+                <div class="font-bold text-[#00FF66] whitespace-nowrap">${label} <span class="text-white text-[10px]">(${score})</span></div>
+                <div class="text-slate-300 text-left flex-1 leading-relaxed">${comment}</div>
+            </div>
+        `;
+    });
+    chartWrapper.appendChild(commentBox);
+    
+    container.appendChild(chartWrapper);
+
+    new Chart(canvas, {
+        type: 'radar',
+        data: {
+            labels: radarData.labels,
+            datasets: [{
+                label: 'AI 코칭 진단',
+                data: radarData.scores,
+                backgroundColor: 'rgba(0, 255, 102, 0.2)',
+                borderColor: '#00FF66',
+                pointBackgroundColor: '#CCFF00',
+                pointBorderColor: '#1e293b',
+                pointHoverBackgroundColor: '#fff',
+                pointHoverBorderColor: '#CCFF00',
+                borderWidth: 2,
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                r: {
+                    beginAtZero: true,
+                    min: 0,
+                    max: 5,
+                    angleLines: { color: 'rgba(255, 255, 255, 0.1)' },
+                    grid: { color: 'rgba(255, 255, 255, 0.1)' },
+                    pointLabels: {
+                        color: '#cbd5e1',
+                        font: { size: 10, family: 'sans-serif', weight: 'bold' }
+                    },
+                    ticks: {
+                        display: false,
+                        stepSize: 1
+                    }
+                }
+            },
+            plugins: {
+                legend: { display: false }
+            }
+        }
+    });
 }
