@@ -5,6 +5,8 @@ let isAscending = false;
 let currentFilter = 'all';
 let currentStrokesData = [];
 let currentSplitsData = [];
+let selectedWorkoutId = null;
+let selectedSplits = [];
 
 window.addEventListener('DOMContentLoaded', () => {
     initApp();
@@ -244,9 +246,10 @@ function renderWorkoutList(data) {
         const strokeCountStr = strokeCount ? `${strokeCount}회` : '--회';
 
         const box = document.createElement('div');
-        box.className = "w-full px-3 py-2 flex flex-row items-center justify-between text-[11px] hover:bg-slate-900 cursor-pointer transition tracking-tight gap-1 text-center";
+        box.id = 'workout-box-' + w.id;
+        box.className = `w-full px-3 py-2 flex flex-row items-center justify-between text-[11px] cursor-pointer transition tracking-tight gap-1 text-center ${selectedWorkoutId === w.id ? 'bg-slate-800 border-l-4 border-[#00FF66]' : 'hover:bg-slate-900'}`;
 
-        box.onclick = () => loadSplitDataByWorkoutId(w.id);
+        box.onclick = () => toggleWorkoutSelection(w.id, box);
 
         box.innerHTML = `
             <div class="flex items-center gap-1.5 w-[30%] text-left">
@@ -264,7 +267,34 @@ function renderWorkoutList(data) {
     document.getElementById('workoutSelectContainer').classList.remove('hidden');
 }
 
+function toggleWorkoutSelection(workoutId, boxElement) {
+    if (selectedWorkoutId === workoutId) {
+        // 토글 오프
+        selectedWorkoutId = null;
+        document.getElementById('dashboardContainer').classList.add('hidden');
+        boxElement.classList.remove('bg-slate-800', 'border-l-4', 'border-[#00FF66]');
+        boxElement.classList.add('hover:bg-slate-900');
+        return;
+    }
+    
+    // 이전 선택 해제
+    if (selectedWorkoutId) {
+       const prevSelected = document.getElementById('workout-box-' + selectedWorkoutId);
+       if (prevSelected) {
+           prevSelected.classList.remove('bg-slate-800', 'border-l-4', 'border-[#00FF66]');
+           prevSelected.classList.add('hover:bg-slate-900');
+       }
+    }
+    
+    selectedWorkoutId = workoutId;
+    boxElement.classList.add('bg-slate-800', 'border-l-4', 'border-[#00FF66]');
+    boxElement.classList.remove('hover:bg-slate-900');
+    
+    loadSplitDataByWorkoutId(workoutId);
+}
+
 function loadSplitDataByWorkoutId(workoutId) {
+    selectedSplits = []; // 스플릿 다중 선택 초기화
     const workout = localCacheData.find(item => item.id === workoutId);
     if (!workout) return;
 
@@ -298,7 +328,7 @@ function loadSplitDataByWorkoutId(workoutId) {
 
             const tr = document.createElement('tr');
             tr.className = "hover:bg-slate-900/60 transition cursor-pointer";
-            tr.onclick = () => filterStrokesByDistance(startDist, endDist);
+            tr.onclick = () => toggleSplitSelection(startDist, endDist, tr);
 
             const sTimeRaw = Number(split.time || 0);
             const sTimeSeconds = sTimeRaw / 10;
@@ -340,7 +370,13 @@ function loadSplitDataByWorkoutId(workoutId) {
     const totalDistance = Number(workout.distance || 0);
 
     totalTr.className = "bg-slate-900 font-bold border-t border-slate-700 text-[#00FF66] cursor-pointer";
-    totalTr.onclick = () => filterStrokesByDistance(0, totalDistance);
+    totalTr.onclick = () => {
+        selectedSplits = [];
+        document.querySelectorAll('#splitTableBody tr').forEach(el => {
+            el.classList.remove('bg-slate-800', 'border-l-4', 'border-[#00FF66]');
+        });
+        applySplitFilters();
+    };
 
     let totalPaceRaw = Number(workout.pace || 0);
     if (totalPaceRaw <= 0 && totalDistance > 0 && totalTimeRaw > 0) {
@@ -481,11 +517,33 @@ function renderStrokeData(strokes) {
     renderScatterChart(scatterData);
 }
 
-function filterStrokesByDistance(startDist, endDist) {
+function toggleSplitSelection(startDist, endDist, trElement) {
     if (!currentStrokesData || currentStrokesData.length === 0) return;
+    
+    const idx = selectedSplits.findIndex(s => s.startDist === startDist && s.endDist === endDist);
+    if (idx > -1) {
+        selectedSplits.splice(idx, 1);
+        trElement.classList.remove('bg-slate-800', 'border-l-4', 'border-[#00FF66]');
+    } else {
+        selectedSplits.push({startDist, endDist});
+        trElement.classList.add('bg-slate-800', 'border-l-4', 'border-[#00FF66]');
+    }
+    
+    applySplitFilters();
+}
+
+function applySplitFilters() {
+    if (!currentStrokesData || currentStrokesData.length === 0) return;
+    
+    if (selectedSplits.length === 0) {
+        renderStrokeData(currentStrokesData);
+        return;
+    }
+    
     const filteredStrokes = currentStrokesData.filter(stroke => {
-        return stroke.distM > startDist && stroke.distM <= endDist;
+        return selectedSplits.some(s => stroke.distM > s.startDist && stroke.distM <= s.endDist);
     });
+    
     renderStrokeData(filteredStrokes);
     const container = document.getElementById('dashboardContainer');
     if (container) container.scrollIntoView({ behavior: 'smooth' });
