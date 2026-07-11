@@ -766,7 +766,7 @@ function renderScatterChart(dataPoints) {
 
 // --- AI 프롬프트 생성 (통합 로직) ---
 function generateAiPrompt(type) {
-    let promptBase = "너는 전문 로잉 머신 코치야. 다음 데이터를 분석해줘.\n";
+    let promptBase = "너는 전문 로잉 머신 코치야. 다음 데이터를 분석해줘.\n 0. 2단어로 구성된 키워드와 1줄 요약 정리해줘.\n";
 
     // 1. 공통 데이터 추출
     const activeDateLabel = document.getElementById('activeDateLabel').innerText;
