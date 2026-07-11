@@ -44,122 +44,167 @@
 
         <div id="statusMessage" class="hidden p-4 rounded-2xl text-xs font-semibold bg-slate-900 border border-slate-800 text-center"></div>
 
-        <div id="workoutSelectContainer" class="hidden bg-slate-900 border border-slate-800 p-4 rounded-2xl space-y-2 shadow-xl overflow-hidden">
-            <div class="flex justify-between items-center pb-1">
-                <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">동기화 완료 세션</span>
-                <span class="text-[9px] text-slate-500 font-mono">세션 클릭 시 해당 Split 데이터 출력</span>
-            </div>
+        <div class="flex flex-col lg:grid lg:grid-cols-3 gap-5 items-start w-full">
             
-            <div class="flex gap-2 pb-1">
-                <button onclick="filterWorkouts('all')" class="flex-1 bg-slate-800 text-slate-300 text-[10px] font-bold py-1.5 rounded-lg hover:bg-[#00FF66] hover:text-black transition cursor-pointer border border-slate-700">전체</button>
-                <button onclick="filterWorkouts('VariableInterval')" class="flex-1 bg-slate-800 text-slate-300 text-[10px] font-bold py-1.5 rounded-lg hover:bg-[#00FF66] hover:text-black transition cursor-pointer border border-slate-700">인터벌</button>
-                <button onclick="filterWorkouts('FixedDistanceSplits')" class="flex-1 bg-slate-800 text-slate-300 text-[10px] font-bold py-1.5 rounded-lg hover:bg-[#00FF66] hover:text-black transition cursor-pointer border border-slate-700">단일</button>
-            </div>
-            
-            <div class="w-full border border-slate-800 rounded-xl bg-slate-950 overflow-hidden text-[11px] font-sans select-none">
-                <div class="w-full bg-slate-900 px-3 py-2 border-b border-slate-800 flex items-center justify-between text-slate-400 font-bold">
-                    <button onclick="changeMonth(-1)" class="hover:text-[#00FF66] px-2 py-1 cursor-pointer transition">&larr; Prev</button>
-                    <span id="calendarMonthLabel" class="text-slate-200 text-sm tracking-wider font-mono">YYYY. MM</span>
-                    <button onclick="changeMonth(1)" class="hover:text-[#00FF66] px-2 py-1 cursor-pointer transition">Next &rarr;</button>
-                </div>
-                <div class="grid grid-cols-7 gap-px bg-slate-800 text-center text-[10px] text-slate-500 font-black uppercase">
-                    <div class="bg-slate-900 py-1.5 text-red-400">Sun</div>
-                    <div class="bg-slate-900 py-1.5">Mon</div>
-                    <div class="bg-slate-900 py-1.5">Tue</div>
-                    <div class="bg-slate-900 py-1.5">Wed</div>
-                    <div class="bg-slate-900 py-1.5">Thu</div>
-                    <div class="bg-slate-900 py-1.5">Fri</div>
-                    <div class="bg-slate-900 py-1.5 text-sky-400">Sat</div>
-                </div>
-                <div id="calendarGrid" class="grid grid-cols-7 gap-px bg-slate-800 min-h-[220px]">
-                    <!-- Calendar cells -->
-                </div>
-            </div>
-        </div>
+            <!-- LEFT COLUMN -->
+            <div class="flex flex-col gap-5 w-full">
+                <div id="workoutSelectContainer" class="hidden bg-slate-900 border border-slate-800 p-4 rounded-2xl space-y-2 shadow-xl overflow-hidden">
+                    <div class="flex justify-between items-center pb-1">
+                        <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">동기화 완료 세션</span>
+                        <span class="text-[9px] text-slate-500 font-mono">세션 클릭 시 해당 데이터 출력</span>
+                    </div>
+                    
+                    <div class="flex gap-2 pb-2 mb-1 border-b border-slate-800">
+                        <button id="viewTabCalendar" onclick="setViewMode('calendar')" class="flex-1 bg-[#00FF66] text-black text-[10px] font-bold py-1.5 rounded-lg transition cursor-pointer border border-transparent shadow-[0_0_5px_rgba(0,255,102,0.5)]">🗓️ 달력형</button>
+                        <button id="viewTabList" onclick="setViewMode('list')" class="flex-1 bg-slate-800 text-slate-300 text-[10px] font-bold py-1.5 rounded-lg hover:bg-[#00FF66] hover:text-black transition cursor-pointer border border-slate-700">📄 목록형</button>
+                    </div>
 
-        <div id="dashboardContainer" class="hidden space-y-5">
-            <div class="bg-slate-900 border border-slate-800 p-4 rounded-2xl shadow-xl space-y-2">
-                <div class="flex justify-between items-center mb-1 border-b border-slate-800 pb-2">
-                    <span class="text-xs font-bold text-slate-400 uppercase tracking-wider block">Detailed Split 데이터</span>
-                    <span id="activeDateLabel" class="text-xs text-[#00FF66] font-mono font-bold"></span>
-                </div>
-                
-                <div class="w-full overflow-x-auto border border-slate-800 rounded-xl bg-slate-950 no-scrollbar">
-                    <table class="w-full text-left border-collapse text-[11px] font-mono whitespace-nowrap min-w-[340px]">
-                        <thead>
-                            <tr class="bg-slate-900 text-slate-400 font-bold border-b border-slate-800">
-                                <th class="py-1.5 px-2 text-right">순서</th>
-                                <th class="py-1.5 px-2 text-right">시간</th>
-                                <th class="py-1.5 px-2 text-right">거리</th>
-                                <th class="py-1.5 px-2 text-right">페이스</th>
-                                <th class="py-1.5 px-2 text-right">와트</th>
-                                <th class="py-1.5 px-2 text-right text-orange-400">1회거리</th>
-                                <th class="py-1.5 px-2 text-right text-sky-400 pr-3">s/m</th>
-                            </tr>
-                        </thead>
-                        <tbody id="splitTableBody" class="divide-y divide-slate-900 text-slate-200">
-                            </tbody>
-                    </table>
-                </div>
-            </div>
+                    <div class="flex gap-2 pb-1">
+                        <button onclick="filterWorkouts('all')" class="flex-1 bg-slate-800 text-slate-300 text-[10px] font-bold py-1.5 rounded-lg hover:bg-[#00FF66] hover:text-black transition cursor-pointer border border-slate-700">전체</button>
+                        <button onclick="filterWorkouts('VariableInterval')" class="flex-1 bg-slate-800 text-slate-300 text-[10px] font-bold py-1.5 rounded-lg hover:bg-[#00FF66] hover:text-black transition cursor-pointer border border-slate-700">인터벌</button>
+                        <button onclick="filterWorkouts('FixedDistanceSplits')" class="flex-1 bg-slate-800 text-slate-300 text-[10px] font-bold py-1.5 rounded-lg hover:bg-[#00FF66] hover:text-black transition cursor-pointer border border-slate-700">단일</button>
+                    </div>
+                    
+                    <div id="calendarContainer" class="w-full border border-slate-800 rounded-xl bg-slate-950 overflow-hidden text-[11px] font-sans select-none">
+                        <div class="w-full bg-slate-900 px-3 py-2 border-b border-slate-800 flex items-center justify-between text-slate-400 font-bold">
+                            <button onclick="changeMonth(-1)" class="hover:text-[#00FF66] px-2 py-1 cursor-pointer transition">&larr; Prev</button>
+                            <span id="calendarMonthLabel" class="text-slate-200 text-sm tracking-wider font-mono">YYYY. MM</span>
+                            <button onclick="changeMonth(1)" class="hover:text-[#00FF66] px-2 py-1 cursor-pointer transition">Next &rarr;</button>
+                        </div>
+                        <div class="grid grid-cols-7 gap-px bg-slate-800 text-center text-[10px] text-slate-500 font-black uppercase">
+                            <div class="bg-slate-900 py-1.5 text-red-400">Sun</div>
+                            <div class="bg-slate-900 py-1.5">Mon</div>
+                            <div class="bg-slate-900 py-1.5">Tue</div>
+                            <div class="bg-slate-900 py-1.5">Wed</div>
+                            <div class="bg-slate-900 py-1.5">Thu</div>
+                            <div class="bg-slate-900 py-1.5">Fri</div>
+                            <div class="bg-slate-900 py-1.5 text-sky-400">Sat</div>
+                        </div>
+                        <div id="calendarGrid" class="grid grid-cols-7 gap-px bg-slate-800 h-[250px] overflow-y-auto no-scrollbar">
+                            <!-- Calendar cells -->
+                        </div>
+                    </div>
 
-            <div class="bg-slate-900 border border-slate-800 p-4 rounded-2xl shadow-xl space-y-2">
-                <div class="flex justify-between items-center mb-1 border-b border-slate-800 pb-2 gap-2">
-                    <span class="text-xs font-bold text-[#CCFF00] uppercase tracking-wider block">Raw Stroke 상세 분석</span>
-                    <div class="flex items-center gap-2 flex-wrap justify-end">
-                        <select id="scatterMetricSelect" onchange="onScatterMetricChange()" class="bg-slate-950 border border-slate-700 text-[10px] px-2 py-1 rounded text-slate-300 focus:outline-none focus:border-[#00FF66] cursor-pointer">
-                            <option value="watts">출력 (Watts)</option>
-                            <option value="spm">SPM</option>
-                            <option value="paceSec">페이스 (sec/500m)</option>
-                            <option value="strokeDist">1회 거리 (m)</option>
-                            <option value="strokeTime">1회 시간 (s)</option>
-                        </select>
-                        <span id="activeDateLabel2" class="text-xs text-[#00FF66] font-mono font-bold"></span>
+                    <div id="listContainer" class="hidden w-full border border-slate-800 rounded-xl bg-slate-950 overflow-hidden text-[11px] font-mono">
+                        <div class="w-full bg-slate-900 px-3 py-2 border-b border-slate-800 flex flex-row items-center justify-between text-slate-400 font-bold tracking-tight text-center">
+                            <div class="flex items-center gap-1.5 w-[30%] text-left">
+                                <button onclick="handleSort('date')" class="hover:text-[#00FF66] flex items-center gap-0.5 cursor-pointer">일자<span id="sort_date">▼</span></button>
+                                <button onclick="handleSort('distance')" class="hover:text-[#00FF66] flex items-center gap-0.5 cursor-pointer">거리<span id="sort_distance"></span></button>
+                            </div>
+                            <div class="w-[20%]">
+                                <button onclick="handleSort('time')" class="hover:text-[#00FF66] flex items-center gap-0.5 mx-auto cursor-pointer">⏱️시간<span id="sort_time"></span></button>
+                            </div>
+                            <div class="w-[20%] text-c2-green">
+                                <button onclick="handleSort('pace')" class="hover:text-[#00FF66] flex items-center gap-0.5 mx-auto cursor-pointer">⏱️페이스<span id="sort_pace"></span></button>
+                            </div>
+                            <div class="w-[16%]">
+                                <button onclick="handleSort('stroke_count')" class="hover:text-[#00FF66] flex items-center gap-0.5 mx-auto cursor-pointer">🚣회수<span id="sort_stroke_count"></span></button>
+                            </div>
+                            <div class="w-[14%] text-right">
+                                <button onclick="handleSort('stroke_rate')" class="hover:text-[#00FF66] flex items-center gap-0.5 ml-auto cursor-pointer">⚡SPM<span id="sort_stroke_rate"></span></button>
+                            </div>
+                        </div>
+                        <div id="workoutListGroup" class="w-full h-[276px] overflow-y-auto divide-y divide-slate-900/60 no-scrollbar"></div>
                     </div>
                 </div>
-                <div class="mt-4 bg-slate-950 border border-slate-800 rounded-xl p-2 w-full h-[250px]">
-                    <canvas id="strokeScatterChart"></canvas>
-                </div>
-                <div class="w-full overflow-x-auto overflow-y-auto max-h-[320px] border border-slate-800 rounded-xl bg-slate-950 no-scrollbar relative">
-                    <table class="w-full text-left border-collapse text-[11px] font-mono whitespace-nowrap min-w-[340px]">
-                        <thead class="sticky top-0 bg-slate-900 shadow-[0_1px_0_0_#1e293b] z-10">
-                            <tr class="text-slate-400 font-bold border-b border-slate-800">
-                                <th class="py-1.5 px-2 text-right text-orange-400">페이스</th>
-                                <th class="py-1.5 px-2 text-right text-orange-400">SPM</th>
-                                <th class="py-1.5 px-2 text-right text-orange-400">출력</th>
-                                <th class="py-1.5 px-2 text-right">누적거리</th>
-                                <th class="py-1.5 px-2 text-right">누적시간</th>
-                                <th class="py-1.5 px-2 text-right text-sky-400">1회거리</th>
-                                <th class="py-1.5 px-2 text-right text-sky-400">1회시간</th>
-                            </tr>
-                        </thead>
-                        <tbody id="strokeTableBody" class="divide-y divide-slate-900 text-slate-200"></tbody>
-                    </table>
+
+                <div id="splitDataContainer" class="hidden bg-slate-900 border border-slate-800 p-4 rounded-2xl shadow-xl space-y-2 w-full">
+                    <div class="flex justify-between items-center mb-1 border-b border-slate-800 pb-2">
+                        <span class="text-xs font-bold text-slate-400 uppercase tracking-wider block">Detailed Split 데이터</span>
+                        <span id="activeDateLabel" class="text-xs text-[#00FF66] font-mono font-bold"></span>
+                    </div>
+                    
+                    <div class="w-full overflow-x-auto border border-slate-800 rounded-xl bg-slate-950 no-scrollbar">
+                        <table class="w-full text-left border-collapse text-[11px] font-mono whitespace-nowrap min-w-[340px]">
+                            <thead>
+                                <tr class="bg-slate-900 text-slate-400 font-bold border-b border-slate-800">
+                                    <th class="py-1.5 px-2 text-right">순서</th>
+                                    <th class="py-1.5 px-2 text-right">시간</th>
+                                    <th class="py-1.5 px-2 text-right">거리</th>
+                                    <th class="py-1.5 px-2 text-right">페이스</th>
+                                    <th class="py-1.5 px-2 text-right">와트</th>
+                                    <th class="py-1.5 px-2 text-right text-orange-400">1회거리</th>
+                                    <th class="py-1.5 px-2 text-right text-sky-400 pr-3">s/m</th>
+                                </tr>
+                            </thead>
+                            <tbody id="splitTableBody" class="divide-y divide-slate-900 text-slate-200">
+                                </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
 
-            <div class="bg-slate-900 border border-slate-800 p-4 rounded-2xl shadow-xl space-y-3">
-                <div class="flex justify-between items-center mb-1 border-b border-slate-800 pb-2">
-                    <span class="text-xs font-bold text-[#00FF66] uppercase tracking-wider flex items-center gap-1">
-                        ✨ Gemini AI 분석
-                    </span>
-                    <span class="text-xs font-bold text-[#00FF66] uppercase tracking-wider flex items-center gap-1">
-   			 <a href="javascript:void(0)" 
-    			   onclick="openGeminiForAnalysis()" 
-     			  class="text-xs font-bold text-sky-400 hover:text-sky-300 hover:underline cursor-pointer transition">
-      			 ✨ Gemini 링크 (AI키 불필요)
-  			</a>
-                    </span>
-
+            <!-- MIDDLE COLUMN -->
+            <div id="middleColumn" class="hidden flex-col gap-5 w-full">
+                <!-- Scatter Chart Box -->
+                <div class="bg-slate-900 border border-slate-800 p-4 rounded-2xl shadow-xl flex flex-col lg:h-[440px]">
+                    <div class="flex justify-between items-center mb-1 border-b border-slate-800 pb-2 gap-2">
+                        <span class="text-xs font-bold text-[#CCFF00] uppercase tracking-wider block">Raw Stroke 상세 분석</span>
+                        <div class="flex items-center gap-2 flex-wrap justify-end">
+                            <select id="scatterMetricSelect" onchange="onScatterMetricChange()" class="bg-slate-950 border border-slate-700 text-[10px] px-2 py-1 rounded text-slate-300 focus:outline-none focus:border-[#00FF66] cursor-pointer">
+                                <option value="watts">출력 (Watts)</option>
+                                <option value="spm">SPM</option>
+                                <option value="paceSec">페이스 (sec/500m)</option>
+                                <option value="strokeDist">1회 거리 (m)</option>
+                                <option value="strokeTime">1회 시간 (s)</option>
+                            </select>
+                            <span id="activeDateLabel2" class="text-xs text-[#00FF66] font-mono font-bold"></span>
+                        </div>
+                    </div>
+                    <div class="mt-4 bg-slate-950 border border-slate-800 rounded-xl p-2 w-full h-[250px] lg:h-auto lg:flex-1">
+                        <canvas id="strokeScatterChart"></canvas>
+                    </div>
                 </div>
-
-                <div class="grid grid-cols-3 gap-2">
-                    <button onclick="generateAiReport('today')" class="bg-slate-800 text-slate-300 text-[10px] font-bold py-2 rounded-lg hover:bg-slate-700 hover:text-white transition">당일 분석</button>
-                    <button onclick="generateAiReport('recent_10')" class="bg-slate-800 text-slate-300 text-[10px] font-bold py-2 rounded-lg hover:bg-slate-700 hover:text-white transition">최근 10건 비교</button>
-                    <button onclick="generateAiReport('top_3')" class="bg-slate-800 text-slate-300 text-[10px] font-bold py-2 rounded-lg hover:bg-slate-700 hover:text-white transition">Top 페이스 3건</button>
+                
+                <!-- Stroke Table Box -->
+                <div class="bg-slate-900 border border-slate-800 p-4 rounded-2xl shadow-xl space-y-2">
+                    <div class="flex justify-between items-center mb-1 border-b border-slate-800 pb-2 gap-2">
+                        <span class="text-xs font-bold text-[#CCFF00] uppercase tracking-wider block">상세 Stroke 데이터</span>
+                    </div>
+                    <div class="w-full overflow-x-auto overflow-y-auto max-h-[320px] border border-slate-800 rounded-xl bg-slate-950 no-scrollbar relative">
+                        <table class="w-full text-left border-collapse text-[11px] font-mono whitespace-nowrap min-w-[340px]">
+                            <thead class="sticky top-0 bg-slate-900 shadow-[0_1px_0_0_#1e293b] z-10">
+                                <tr class="text-slate-400 font-bold border-b border-slate-800">
+                                    <th class="py-1.5 px-2 text-right text-orange-400">페이스</th>
+                                    <th class="py-1.5 px-2 text-right text-orange-400">SPM</th>
+                                    <th class="py-1.5 px-2 text-right text-orange-400">출력</th>
+                                    <th class="py-1.5 px-2 text-right">누적거리</th>
+                                    <th class="py-1.5 px-2 text-right">누적시간</th>
+                                    <th class="py-1.5 px-2 text-right text-sky-400">1회거리</th>
+                                    <th class="py-1.5 px-2 text-right text-sky-400">1회시간</th>
+                                </tr>
+                            </thead>
+                            <tbody id="strokeTableBody" class="divide-y divide-slate-900 text-slate-200"></tbody>
+                        </table>
+                    </div>
                 </div>
-                <div id="aiFeedbackBox" class="hidden mt-3 p-3 bg-slate-950 border border-slate-800 rounded-xl text-sm text-slate-300 leading-relaxed font-sans max-h-[300px] overflow-y-auto no-scrollbar"></div>
             </div>
+
+            <!-- RIGHT COLUMN -->
+            <div id="rightColumn" class="hidden flex-col gap-5 w-full">
+                <div class="bg-slate-900 border border-slate-800 p-4 rounded-2xl shadow-xl space-y-3">
+                    <div class="flex justify-between items-center mb-1 border-b border-slate-800 pb-2">
+                        <span class="text-xs font-bold text-[#00FF66] uppercase tracking-wider flex items-center gap-1">
+                            ✨ Gemini AI 분석
+                        </span>
+                        <span class="text-xs font-bold text-[#00FF66] uppercase tracking-wider flex items-center gap-1">
+                 <a href="javascript:void(0)" 
+                       onclick="openGeminiForAnalysis()" 
+                       class="text-xs font-bold text-sky-400 hover:text-sky-300 hover:underline cursor-pointer transition">
+                       ✨ Gemini 링크 (AI키 불필요)
+                  </a>
+                        </span>
+                    </div>
+
+                    <div class="grid grid-cols-3 gap-2">
+                        <button onclick="generateAiReport('today')" class="bg-slate-800 text-slate-300 text-[10px] font-bold py-2 rounded-lg hover:bg-slate-700 hover:text-white transition">당일 분석</button>
+                        <button onclick="generateAiReport('recent_10')" class="bg-slate-800 text-slate-300 text-[10px] font-bold py-2 rounded-lg hover:bg-slate-700 hover:text-white transition">최근 10건 비교</button>
+                        <button onclick="generateAiReport('top_3')" class="bg-slate-800 text-slate-300 text-[10px] font-bold py-2 rounded-lg hover:bg-slate-700 hover:text-white transition">Top 페이스 3건</button>
+                    </div>
+                    <div id="aiFeedbackBox" class="hidden mt-3 p-3 bg-slate-950 border border-slate-800 rounded-xl text-sm text-slate-300 leading-relaxed font-sans max-h-[300px] lg:max-h-[825px] lg:h-[825px] overflow-y-auto no-scrollbar"></div>
+                </div>
+            </div>
+            
         </div>
     </main>
 

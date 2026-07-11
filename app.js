@@ -11,6 +11,8 @@ let currentYear = new Date().getFullYear();
 let currentMonth = new Date().getMonth();
 let currentScatterMetric = 'watts';
 
+let currentViewMode = 'calendar';
+
 window.addEventListener('DOMContentLoaded', () => {
     initApp();
 });
@@ -157,7 +159,7 @@ async function fetchConcept2Results() {
         currentSortKey = 'date';
         isAscending = false;
         currentFilter = 'all';
-        renderCalendar();
+        applyFilterAndRender();
 
         showStatus(`✅ 성공적으로 전체 ${localCacheData.length}개의 세션을 동기화했습니다.`);
     } catch (err) {
@@ -167,7 +169,134 @@ async function fetchConcept2Results() {
 
 function filterWorkouts(type) {
     currentFilter = type;
-    renderCalendar();
+    applyFilterAndRender();
+}
+
+function setViewMode(mode) {
+    currentViewMode = mode;
+    const tabCal = document.getElementById('viewTabCalendar');
+    const tabList = document.getElementById('viewTabList');
+    const calCont = document.getElementById('calendarContainer');
+    const listCont = document.getElementById('listContainer');
+    
+    if (mode === 'calendar') {
+        tabCal.className = "flex-1 bg-[#00FF66] text-black text-[10px] font-bold py-1.5 rounded-lg transition cursor-pointer border border-transparent shadow-[0_0_5px_rgba(0,255,102,0.5)]";
+        tabList.className = "flex-1 bg-slate-800 text-slate-300 text-[10px] font-bold py-1.5 rounded-lg hover:bg-[#00FF66] hover:text-black transition cursor-pointer border border-slate-700";
+        calCont.classList.remove('hidden');
+        listCont.classList.add('hidden');
+    } else {
+        tabList.className = "flex-1 bg-[#00FF66] text-black text-[10px] font-bold py-1.5 rounded-lg transition cursor-pointer border border-transparent shadow-[0_0_5px_rgba(0,255,102,0.5)]";
+        tabCal.className = "flex-1 bg-slate-800 text-slate-300 text-[10px] font-bold py-1.5 rounded-lg hover:bg-[#00FF66] hover:text-black transition cursor-pointer border border-slate-700";
+        listCont.classList.remove('hidden');
+        calCont.classList.add('hidden');
+    }
+    
+    applyFilterAndRender();
+}
+
+function handleSort(key) {
+    if (localCacheData.length === 0) return;
+
+    if (currentSortKey === key) {
+        isAscending = !isAscending;
+    } else {
+        currentSortKey = key;
+        isAscending = true;
+    }
+
+    const keys = ['date', 'distance', 'time', 'pace', 'stroke_count', 'stroke_rate'];
+    keys.forEach(k => {
+        const el = document.getElementById(`sort_${k}`);
+        if (el) el.innerText = "";
+    });
+    document.getElementById(`sort_${key}`).innerText = isAscending ? "▲" : "▼";
+
+    applyFilterAndRender();
+}
+
+function applyFilterAndRender() {
+    if (currentViewMode === 'calendar') {
+        renderCalendar();
+    } else {
+        let dataToRender = [...localCacheData];
+
+        if (currentFilter !== 'all') {
+            dataToRender = dataToRender.filter(w => {
+                const typeStr = String((w.workout && w.workout.type) || w.workout_type || w.type || "");
+                return typeStr === currentFilter;
+            });
+        }
+
+        dataToRender.sort((a, b) => {
+            let valA = a[currentSortKey];
+            let valB = b[currentSortKey];
+
+            if (currentSortKey === 'pace') {
+                if (!valA && a.time && a.distance) valA = ((a.time / 10) / a.distance) * 500 * 10;
+                if (!valB && b.time && b.distance) valB = ((b.time / 10) / b.distance) * 500 * 10;
+            }
+
+            if (currentSortKey === 'stroke_count') {
+                if (!valA && a.time && a.stroke_rate) valA = Math.round(((a.time / 10) / 60) * a.stroke_rate);
+                if (!valB && b.time && b.distance) valB = Math.round(((b.time / 10) / b.distance) * b.stroke_rate);
+            }
+
+            valA = valA ? (isNaN(valA) ? valA : Number(valA)) : 0;
+            valB = valB ? (isNaN(valB) ? valB : Number(valB)) : 0;
+
+            if (valA < valB) return isAscending ? -1 : 1;
+            if (valA > valB) return isAscending ? 1 : -1;
+            return 0;
+        });
+
+        renderWorkoutList(dataToRender);
+    }
+}
+
+function renderWorkoutList(data) {
+    const group = document.getElementById('workoutListGroup');
+    group.innerHTML = "";
+
+    data.forEach((w) => {
+        const dateStr = String(w.date).substring(5, 10);
+        const distanceStr = `${Number(w.distance || 0).toLocaleString()}m`;
+
+        const timeFormattedStr = formatPm5Time(w.time);
+        const spmStr = w.stroke_rate ? String(w.stroke_rate) : '--';
+
+        let rowPaceRaw = Number(w.pace || 0);
+        if (rowPaceRaw <= 0 && w.distance > 0 && w.time > 0) {
+            rowPaceRaw = (((w.time / 10) / w.distance) * 500) * 10;
+        }
+        const paceFormattedStr = formatPm5Pace(rowPaceRaw);
+
+        let strokeCount = w.stroke_count;
+        if (!strokeCount && w.time && w.stroke_rate) {
+            strokeCount = Math.round(((w.time / 10) / 60) * w.stroke_rate);
+        }
+        const strokeCountStr = strokeCount ? `${strokeCount}회` : '--회';
+
+        const box = document.createElement('div');
+        box.id = 'workout-listbox-' + w.id;
+        const isSelected = selectedWorkoutId === w.id;
+        box.className = `w-full px-3 py-2 flex flex-row items-center justify-between text-[11px] cursor-pointer transition tracking-tight gap-1 text-center ${isSelected ? 'bg-slate-800 border-l-4 border-[#00FF66]' : 'hover:bg-slate-900'}`;
+
+        box.onclick = () => toggleWorkoutSelection(w.id, box);
+
+        box.innerHTML = `
+            <div class="flex items-center gap-1.5 w-[30%] text-left">
+                <span class="text-[#00FF66] font-bold">${dateStr}</span>
+                <span class="text-slate-300 font-semibold">${distanceStr}</span>
+            </div>
+            <div class="w-[20%] text-slate-200">${timeFormattedStr}</div>
+            <div class="w-[20%] text-c2-green font-bold">${paceFormattedStr}</div>
+            <div class="w-[16%] text-[#CCFF00]">${strokeCountStr}</div>
+            <div class="w-[14%] text-right text-slate-400">${spmStr}</div>
+        `;
+        group.appendChild(box);
+    });
+
+    document.getElementById('workoutSelectContainer').classList.remove('hidden');
 }
 
 function changeMonth(dir) {
@@ -260,13 +389,15 @@ function toggleWorkoutSelection(workoutId, boxElement) {
     if (selectedWorkoutId === workoutId) {
         // 토글 오프
         selectedWorkoutId = null;
-        document.getElementById('dashboardContainer').classList.add('hidden');
-        renderCalendar();
+        document.getElementById('splitDataContainer').classList.add('hidden');
+        document.getElementById('middleColumn').classList.add('hidden');
+        document.getElementById('rightColumn').classList.add('hidden');
+        applyFilterAndRender();
         return;
     }
     
     selectedWorkoutId = workoutId;
-    renderCalendar();
+    applyFilterAndRender();
     
     loadSplitDataByWorkoutId(workoutId);
 }
@@ -276,7 +407,9 @@ function loadSplitDataByWorkoutId(workoutId) {
     const workout = localCacheData.find(item => item.id === workoutId);
     if (!workout) return;
 
-    document.getElementById('dashboardContainer').classList.remove('hidden');
+    document.getElementById('splitDataContainer').classList.remove('hidden');
+    document.getElementById('middleColumn').classList.remove('hidden');
+    document.getElementById('rightColumn').classList.remove('hidden');
     document.getElementById('activeDateLabel').innerText = String(workout.date).substring(0, 10);
     document.getElementById('activeDateLabel2').innerText = String(workout.date).substring(0, 10);
 
@@ -381,7 +514,7 @@ function loadSplitDataByWorkoutId(workoutId) {
 
     callStrokeData(workoutId);
 
-    document.getElementById('dashboardContainer').scrollIntoView({ behavior: 'smooth' });
+    document.getElementById('splitDataContainer').scrollIntoView({ behavior: 'smooth' });
 }
 
 async function callStrokeData(workoutId) {
@@ -389,7 +522,6 @@ async function callStrokeData(workoutId) {
     const userId = localStorage.getItem('c2_user_id');
     const mode = localStorage.getItem('c2_proxy_mode') || "direct";
 
-    document.getElementById('dashboardContainer').classList.remove('hidden');
     const workout = localCacheData.find(item => item.id === workoutId);
     if (!workout) return;
     document.getElementById('activeDateLabel').innerText = String(workout.date).substring(0, 10);
@@ -536,7 +668,7 @@ function applySplitFilters() {
     });
     
     renderStrokeData(filteredStrokes);
-    const container = document.getElementById('dashboardContainer');
+    const container = document.getElementById('middleColumn');
     if (container) container.scrollIntoView({ behavior: 'smooth' });
 }
 
