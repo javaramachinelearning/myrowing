@@ -7,6 +7,9 @@ let currentStrokesData = [];
 let currentSplitsData = [];
 let selectedWorkoutId = null;
 let selectedSplits = [];
+let currentYear = new Date().getFullYear();
+let currentMonth = new Date().getMonth();
+let currentScatterMetric = 'watts';
 
 window.addEventListener('DOMContentLoaded', () => {
     initApp();
@@ -154,7 +157,7 @@ async function fetchConcept2Results() {
         currentSortKey = 'date';
         isAscending = false;
         currentFilter = 'all';
-        applyFilterAndSort();
+        renderCalendar();
 
         showStatus(`✅ 성공적으로 전체 ${localCacheData.length}개의 세션을 동기화했습니다.`);
     } catch (err) {
@@ -164,106 +167,92 @@ async function fetchConcept2Results() {
 
 function filterWorkouts(type) {
     currentFilter = type;
-    applyFilterAndSort();
+    renderCalendar();
 }
 
-function handleSort(key) {
-    if (localCacheData.length === 0) return;
-
-    if (currentSortKey === key) {
-        isAscending = !isAscending;
-    } else {
-        currentSortKey = key;
-        isAscending = true;
+function changeMonth(dir) {
+    currentMonth += dir;
+    if (currentMonth > 11) {
+        currentMonth = 0;
+        currentYear++;
+    } else if (currentMonth < 0) {
+        currentMonth = 11;
+        currentYear--;
     }
-
-    const keys = ['date', 'distance', 'time', 'pace', 'stroke_count', 'stroke_rate'];
-    keys.forEach(k => {
-        const el = document.getElementById(`sort_${k}`);
-        if (el) el.innerText = "";
-    });
-    document.getElementById(`sort_${key}`).innerText = isAscending ? "▲" : "▼";
-
-    applyFilterAndSort();
+    renderCalendar();
 }
 
-function applyFilterAndSort() {
-    let dataToRender = [...localCacheData];
-
-    if (currentFilter !== 'all') {
-        dataToRender = dataToRender.filter(w => {
+function renderCalendar() {
+    const grid = document.getElementById('calendarGrid');
+    if (!grid) return;
+    grid.innerHTML = "";
+    
+    document.getElementById('calendarMonthLabel').innerText = `${currentYear}. ${String(currentMonth + 1).padStart(2, '0')}`;
+    
+    const firstDay = new Date(currentYear, currentMonth, 1).getDay();
+    const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
+    
+    // 이전 달 빈 칸
+    for (let i = 0; i < firstDay; i++) {
+        const cell = document.createElement('div');
+        cell.className = "bg-slate-900/50 min-h-[60px] p-1";
+        grid.appendChild(cell);
+    }
+    
+    // 현재 달 날짜
+    for (let day = 1; day <= daysInMonth; day++) {
+        const cell = document.createElement('div');
+        cell.className = "bg-slate-900 min-h-[60px] p-1 flex flex-col gap-1 border-t border-transparent hover:border-[#00FF66]/30 transition group overflow-hidden";
+        
+        const dayLabel = document.createElement('div');
+        dayLabel.className = "text-right text-[9px] font-bold text-slate-500 group-hover:text-slate-300";
+        dayLabel.innerText = day;
+        cell.appendChild(dayLabel);
+        
+        const dateStrPrefix = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+        let dayWorkouts = localCacheData.filter(w => String(w.date).startsWith(dateStrPrefix));
+        
+        if (currentFilter !== 'all') {
+            dayWorkouts = dayWorkouts.filter(w => {
+                const typeStr = String((w.workout && w.workout.type) || w.workout_type || w.type || "");
+                return typeStr === currentFilter;
+            });
+        }
+        
+        dayWorkouts.forEach(w => {
+            const wBox = document.createElement('div');
+            wBox.id = 'workout-box-' + w.id;
+            
+            const isSelected = selectedWorkoutId === w.id;
+            
             const typeStr = String((w.workout && w.workout.type) || w.workout_type || w.type || "");
-            return typeStr === currentFilter;
+            let defaultBg = 'bg-slate-800 text-c2-green hover:bg-slate-700 hover:text-white';
+            if (typeStr.startsWith("Variable")) {
+                defaultBg = 'bg-yellow-500/90 text-black hover:bg-yellow-400';
+            } else if (typeStr.startsWith("Fixed")) {
+                defaultBg = 'bg-blue-500/90 text-white hover:bg-blue-400';
+            }
+
+            wBox.className = `text-[9.5px] font-bold p-1 rounded cursor-pointer text-center truncate select-none ${isSelected ? 'bg-[#00FF66] text-black shadow-[0_0_5px_rgba(0,255,102,0.5)]' : defaultBg}`;
+            
+            wBox.innerText = formatPm5Time(w.time);
+            wBox.onclick = () => toggleWorkoutSelection(w.id, wBox);
+            
+            cell.appendChild(wBox);
         });
+        
+        grid.appendChild(cell);
     }
-
-    dataToRender.sort((a, b) => {
-        let valA = a[currentSortKey];
-        let valB = b[currentSortKey];
-
-        if (currentSortKey === 'pace') {
-            if (!valA && a.time && a.distance) valA = ((a.time / 10) / a.distance) * 500 * 10;
-            if (!valB && b.time && b.distance) valB = ((b.time / 10) / b.distance) * 500 * 10;
-        }
-
-        if (currentSortKey === 'stroke_count') {
-            if (!valA && a.time && a.stroke_rate) valA = Math.round(((a.time / 10) / 60) * a.stroke_rate);
-            if (!valB && b.time && b.distance) valB = Math.round(((b.time / 10) / b.distance) * b.stroke_rate);
-        }
-
-        valA = valA ? (isNaN(valA) ? valA : Number(valA)) : 0;
-        valB = valB ? (isNaN(valB) ? valB : Number(valB)) : 0;
-
-        if (valA < valB) return isAscending ? -1 : 1;
-        if (valA > valB) return isAscending ? 1 : -1;
-        return 0;
-    });
-
-    renderWorkoutList(dataToRender);
-}
-
-function renderWorkoutList(data) {
-    const group = document.getElementById('workoutListGroup');
-    group.innerHTML = "";
-
-    data.forEach((w) => {
-        const dateStr = String(w.date).substring(5, 10);
-        const distanceStr = `${Number(w.distance || 0).toLocaleString()}m`;
-
-        const timeFormattedStr = formatPm5Time(w.time);
-        const spmStr = w.stroke_rate ? String(w.stroke_rate) : '--';
-
-        let rowPaceRaw = Number(w.pace || 0);
-        if (rowPaceRaw <= 0 && w.distance > 0 && w.time > 0) {
-            rowPaceRaw = (((w.time / 10) / w.distance) * 500) * 10;
-        }
-        const paceFormattedStr = formatPm5Pace(rowPaceRaw);
-
-        let strokeCount = w.stroke_count;
-        if (!strokeCount && w.time && w.stroke_rate) {
-            strokeCount = Math.round(((w.time / 10) / 60) * w.stroke_rate);
-        }
-        const strokeCountStr = strokeCount ? `${strokeCount}회` : '--회';
-
-        const box = document.createElement('div');
-        box.id = 'workout-box-' + w.id;
-        box.className = `w-full px-3 py-2 flex flex-row items-center justify-between text-[11px] cursor-pointer transition tracking-tight gap-1 text-center ${selectedWorkoutId === w.id ? 'bg-slate-800 border-l-4 border-[#00FF66]' : 'hover:bg-slate-900'}`;
-
-        box.onclick = () => toggleWorkoutSelection(w.id, box);
-
-        box.innerHTML = `
-            <div class="flex items-center gap-1.5 w-[30%] text-left">
-                <span class="text-[#00FF66] font-bold">${dateStr}</span>
-                <span class="text-slate-300 font-semibold">${distanceStr}</span>
-            </div>
-            <div class="w-[20%] text-slate-200">${timeFormattedStr}</div>
-            <div class="w-[20%] text-c2-green font-bold">${paceFormattedStr}</div>
-            <div class="w-[16%] text-[#CCFF00]">${strokeCountStr}</div>
-            <div class="w-[14%] text-right text-slate-400">${spmStr}</div>
-        `;
-        group.appendChild(box);
-    });
-
+    
+    // 다음 달 빈 칸
+    const totalCells = firstDay + daysInMonth;
+    const remaining = totalCells % 7 === 0 ? 0 : 7 - (totalCells % 7);
+    for (let i = 0; i < remaining; i++) {
+        const cell = document.createElement('div');
+        cell.className = "bg-slate-900/50 min-h-[60px] p-1";
+        grid.appendChild(cell);
+    }
+    
     document.getElementById('workoutSelectContainer').classList.remove('hidden');
 }
 
@@ -272,23 +261,12 @@ function toggleWorkoutSelection(workoutId, boxElement) {
         // 토글 오프
         selectedWorkoutId = null;
         document.getElementById('dashboardContainer').classList.add('hidden');
-        boxElement.classList.remove('bg-slate-800', 'border-l-4', 'border-[#00FF66]');
-        boxElement.classList.add('hover:bg-slate-900');
+        renderCalendar();
         return;
     }
     
-    // 이전 선택 해제
-    if (selectedWorkoutId) {
-       const prevSelected = document.getElementById('workout-box-' + selectedWorkoutId);
-       if (prevSelected) {
-           prevSelected.classList.remove('bg-slate-800', 'border-l-4', 'border-[#00FF66]');
-           prevSelected.classList.add('hover:bg-slate-900');
-       }
-    }
-    
     selectedWorkoutId = workoutId;
-    boxElement.classList.add('bg-slate-800', 'border-l-4', 'border-[#00FF66]');
-    boxElement.classList.remove('hover:bg-slate-900');
+    renderCalendar();
     
     loadSplitDataByWorkoutId(workoutId);
 }
@@ -486,6 +464,13 @@ async function callStrokeData(workoutId) {
     }
 }
 
+function onScatterMetricChange() {
+    const select = document.getElementById('scatterMetricSelect');
+    if (!select) return;
+    currentScatterMetric = select.value;
+    applySplitFilters();
+}
+
 function renderStrokeData(strokes) {
     const tbody = document.getElementById('strokeTableBody');
     tbody.innerHTML = "";
@@ -498,7 +483,13 @@ function renderStrokeData(strokes) {
     const scatterData = [];
 
     strokes.forEach((stroke, i) => {
-        scatterData.push({ x: stroke.distM, y: stroke.watts });
+        let yVal = stroke.watts;
+        if (currentScatterMetric === 'spm') yVal = stroke.spm;
+        else if (currentScatterMetric === 'paceSec') yVal = stroke.paceSec;
+        else if (currentScatterMetric === 'strokeDist') yVal = stroke.strokeDist;
+        else if (currentScatterMetric === 'strokeTime') yVal = stroke.strokeTime;
+
+        scatterData.push({ x: stroke.distM, y: yVal });
 
         const tr = document.createElement('tr');
         tr.className = "hover:bg-slate-900/60 border-b border-slate-900";
@@ -587,19 +578,31 @@ function renderScatterChart(dataPoints) {
     const trendColor = slope >= 0 ? '#38bdf8' : '#ef4444'; // 양수: 하늘색, 음수: 적색
     
     // 회귀 직선 생성
-    const xMin = dataPoints[0].x;
-    const xMax = dataPoints[dataPoints.length - 1].x;
-    const regressionLine = [
-        { x: xMin, y: slope * xMin + intercept },
-        { x: xMax, y: slope * xMax + intercept }
-    ];
+    let regressionLine = [];
+    if (dataPoints.length > 0) {
+        const xMin = dataPoints[0].x;
+        const xMax = dataPoints[dataPoints.length - 1].x;
+        regressionLine = [
+            { x: xMin, y: slope * xMin + intercept },
+            { x: xMax, y: slope * xMax + intercept }
+        ];
+    }
+
+    const metricLabels = {
+        'watts': '출력 (W)',
+        'spm': 'SPM',
+        'paceSec': '페이스 (s/500m)',
+        'strokeDist': '1회 거리 (m)',
+        'strokeTime': '1회 시간 (s)'
+    };
+    const yLabel = metricLabels[currentScatterMetric] || '값';
 
     strokeScatterChartObj = new Chart(ctx, {
         type: 'scatter',
         data: {
             datasets: [
                 {
-                    label: '스트로크 출력 (W)',
+                    label: yLabel,
                     data: dataPoints,
                     backgroundColor: '#00FF66',
                     pointRadius: 3
