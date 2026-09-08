@@ -768,6 +768,10 @@ function renderScatterChart(dataPoints) {
 function generateAiPrompt(type) {
     let promptBase = "너는 전문 로잉 머신 코치야. 다음 데이터를 분석해줘.\n 0. 2단어로 구성된 키워드와 1줄 요약 정리해줘.\n";
 
+    const customPromptEl = document.getElementById('aiCustomPrompt');
+    const customPromptText = customPromptEl && customPromptEl.value.trim() ? `\n[사용자 추가 요청 사항]: ${customPromptEl.value.trim()}\n` : "";
+    promptBase += customPromptText;
+
     // 1. 공통 데이터 추출
     const activeDateLabel = document.getElementById('activeDateLabel').innerText;
     const result = localCacheData.find(d => String(d.date).substring(0, 10) === activeDateLabel);

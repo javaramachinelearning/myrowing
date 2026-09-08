@@ -201,6 +201,9 @@
                         <button onclick="generateAiReport('recent_10')" class="bg-slate-800 text-slate-300 text-[10px] font-bold py-2 rounded-lg hover:bg-slate-700 hover:text-white transition">최근 10건 비교</button>
                         <button onclick="generateAiReport('top_3')" class="bg-slate-800 text-slate-300 text-[10px] font-bold py-2 rounded-lg hover:bg-slate-700 hover:text-white transition">Top 페이스 3건</button>
                     </div>
+                    <div class="mt-2">
+                        <textarea id="aiCustomPrompt" class="w-full bg-slate-950 border border-slate-700 text-xs px-3 py-2 rounded-xl text-slate-200 focus:outline-none focus:border-[#00FF66] placeholder-slate-500 resize-none" rows="2" placeholder="AI에게 추가로 요청할 사항을 입력하세요... (선택)"></textarea>
+                    </div>
                     <div id="aiFeedbackBox" class="hidden mt-3 p-3 bg-slate-950 border border-slate-800 rounded-xl text-sm text-slate-300 leading-relaxed font-sans max-h-[300px] lg:max-h-none lg:flex-1 overflow-y-auto no-scrollbar"></div>
                 </div>
             </div>
