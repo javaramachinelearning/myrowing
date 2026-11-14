@@ -781,7 +781,10 @@ function generateAiPrompt(type) {
         : "상세 스플릿 데이터 없음";
 
     const strokeSummary = currentStrokesData.length > 0 
-        ? currentStrokesData.map((s, i) => `[#${i+1}] ${s.distM}m, ${s.watts}W, ${s.spm}SPM`).join(' | ')
+        ? currentStrokesData.map((s, i) => `[#${i+1}] ${s.p}dsec, ${s.watts}W, ${s.spm}SPM, ${s.distM}m, ${s.t/10}s`).join(' | ')
+
+        //? currentStrokesData.map((s, i) => `[#${i+1}] ${s.distM}m, ${s.watts}W, ${s.spm}SPM`).join(' | ')
+    //  ? currentStrokesData map((s, i) => `[#${i+1}] ${s.p}dsec, ${s.spm}SPM, ${s.watts}W, ${s.distM}m, ${s.t/10}s`).join(" I ')
         : "상세 스트로크 데이터 없음";
 
     // 2. 공통 요청 사항 정의
